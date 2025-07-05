@@ -1,5 +1,11 @@
 #!/bin/bash
 
+echo "Setting up macOS AI Wallpaper Generator"
+echo "This script requires:"
+echo "1. wallpaper-cli (for setting wallpapers)"
+echo "2. Python3 with pollinations package (for generating images)"
+echo ""
+
 # Check if npm is installed
 if ! command -v npm &> /dev/null; then
     echo "npm is not installed."
@@ -111,23 +117,23 @@ else
 fi
 
 # Install required Python packages
-echo "Installing required Python packages..."
+echo "Installing required Python package: pollinations..."
 
-# Install requests (required)
-python3 -m pip install requests
-if [ $? -eq 0 ]; then
-    echo "Python requests package installed successfully."
-else
-    echo "Failed to install Python requests package."
-    exit 1
-fi
-
-# Install pollinations package (optional, enhanced features)
-echo "Installing pollinations package for enhanced features..."
+# Install pollinations package (required for image generation)
 python3 -m pip install pollinations
 if [ $? -eq 0 ]; then
     echo "Pollinations package installed successfully."
 else
-    echo "Note: Failed to install pollinations package, but this is optional."
-    echo "The script will use direct API calls instead."
+    echo "Failed to install pollinations package."
+    echo "Please install it manually: pip3 install pollinations"
+    exit 1
 fi
+
+echo ""
+echo "Setup completed successfully!"
+echo ""
+echo "You can now use the wallpaper generator:"
+echo "./macos-gen-ai-wallpaper.sh \"your prompt here\""
+echo ""
+echo "Optional: Add a save directory to keep copies:"
+echo "./macos-gen-ai-wallpaper.sh \"your prompt here\" ~/Pictures/AI-Wallpapers/"

@@ -50,23 +50,17 @@ if ! command -v python3 &>/dev/null; then
     exit 1
 fi
 
-# Check if requests module is available
-python3 -c "import requests" 2>/dev/null
-if [ $? -ne 0 ]; then
-    echo "Python 'requests' module is not installed. Installing it now..."
-    python3 -m pip install requests
-    if [ $? -ne 0 ]; then
-        echo "Failed to install requests module. Please install it manually:"
-        echo "pip3 install requests"
-        exit 1
-    fi
-fi
-
-# Check if pollinations package is available (optional)
+# Check if pollinations package is available
 python3 -c "import pollinations" 2>/dev/null
 if [ $? -ne 0 ]; then
-    echo "Optional: Installing pollinations package for enhanced features..."
-    python3 -m pip install pollinations 2>/dev/null || echo "Note: pollinations package installation failed, will use direct API method"
+    echo "Installing pollinations package..."
+    python3 -m pip install pollinations
+    if [ $? -ne 0 ]; then
+        echo "Failed to install pollinations package. Please install it manually:"
+        echo "pip3 install pollinations"
+        exit 1
+    fi
+    echo "pollinations package installed successfully"
 fi
 
 # Set wallpapers from previous images in the queued directory
@@ -110,8 +104,8 @@ if [ ! -f "$PYTHON_SCRIPT" ]; then
     echo "Error: Python wallpaper generator script not found at $PYTHON_SCRIPT"
     exit 1
 fi
-
-# Loop over each display and generate high-quality images using Python
+# Now proceed to generate new images using the pollinations package
+echo "Generating new wallpapers using pollinations package with highest quality settings..."
 for ((index = 1; index <= NUM_DISPLAYS; index++)); do
     echo "Processing display $index with Python generator"
 
@@ -129,7 +123,7 @@ for ((index = 1; index <= NUM_DISPLAYS; index++)); do
     # Check if Python script succeeded
     if [ $? -eq 0 ] && [ -f "$QUEUED_IMAGE_FILE" ] && [ -s "$QUEUED_IMAGE_FILE" ]; then
         echo "High-quality wallpaper generated successfully for display $index"
-        echo "Saved to queued images: $QUEUED_IMAGE_FILE"
+    echo "Generating high-quality wallpaper (1024x1024) for display $index..."
         
         # Get file size for verification
         FILE_SIZE=$(du -h "$QUEUED_IMAGE_FILE" | cut -f1)

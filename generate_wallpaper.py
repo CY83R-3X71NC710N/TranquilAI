@@ -1,60 +1,20 @@
 #!/usr/bin/env python3
 """
-High-quality wallpaper generator using Pollinations AI
-Supports both direct API calls and the official pollinations package
+High-quality wallpaper generator using Pollinations AI Package
+Using the pollinations pypi package
 """
 
 import sys
 import os
 import time
-import requests
-from urllib.parse import quote
+import pollinations
 
-def download_image_direct_api(prompt, width, height, seed, output_file):
+def generate_wallpaper_with_pollinations(prompt, width, height, seed, output_file):
     """
-    Download image using direct API call to Pollinations
+    Generate wallpaper using the pollinations package
     """
     try:
-        # URL encode the prompt
-        encoded_prompt = quote(prompt)
-        
-        # Use flux model for highest quality with maximum resolution
-        # Flux model supports up to 2048x2048 resolution
-        image_url = f"https://pollinations.ai/p/{encoded_prompt}?width={width}&height={height}&seed={seed}&model=flux&nologo=true&enhance=true"
-        
-        print(f"Generating image with URL: {image_url}")
-        
-        # Make request with timeout and proper headers
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
-        }
-        
-        response = requests.get(image_url, headers=headers, timeout=60)
-        response.raise_for_status()
-        
-        # Write the content to file
-        with open(output_file, 'wb') as file:
-            file.write(response.content)
-        
-        # Verify file was created and has content
-        if os.path.exists(output_file) and os.path.getsize(output_file) > 0:
-            print(f"Image downloaded successfully: {output_file}")
-            return True
-        else:
-            print(f"Failed to download image: {output_file}")
-            return False
-            
-    except Exception as e:
-        print(f"Error downloading image: {str(e)}")
-        return False
-
-def download_image_with_package(prompt, width, height, seed, output_file):
-    """
-    Download image using the official pollinations package
-    Falls back to direct API if package is not available
-    """
-    try:
-        import pollinations
+        print(f"Using pollinations package to generate image...")
         
         # Create model with flux for highest quality
         model = pollinations.Image(
@@ -65,26 +25,41 @@ def download_image_with_package(prompt, width, height, seed, output_file):
         )
         
         # Generate and save image
-        result = model.Generate(
+        model.Generate(
             prompt=prompt,
             save=True
         )
         
-        # The package saves with default name, so we need to rename
-        # This is a simplified implementation - the actual package behavior may vary
-        if os.path.exists("generated_image.png"):
-            os.rename("generated_image.png", output_file)
-            print(f"Image generated successfully with pollinations package: {output_file}")
+        # The package typically saves with a default name, check common patterns
+        possible_files = [
+            "generated_image.png",
+            "image.png", 
+            f"{seed}.png",
+            "output.png"
+        ]
+        
+        for possible_file in possible_files:
+            if os.path.exists(possible_file):
+                # Move the generated file to our desired output location
+                if possible_file != output_file:
+                    os.rename(possible_file, output_file)
+                print(f"Image generated successfully: {output_file}")
+                return True
+        
+        # If no standard file found, check current directory for any new PNG files
+        png_files = [f for f in os.listdir('.') if f.endswith('.png')]
+        if png_files:
+            # Use the most recently created PNG file
+            latest_file = max(png_files, key=os.path.getctime)
+            os.rename(latest_file, output_file)
+            print(f"Image generated successfully: {output_file}")
             return True
-        else:
-            print("Pollinations package method failed, falling back to direct API")
-            return False
-            
-    except ImportError:
-        print("Pollinations package not installed, using direct API method")
+        
+        print("Failed to locate generated image file")
         return False
+        
     except Exception as e:
-        print(f"Error with pollinations package: {str(e)}, falling back to direct API")
+        print(f"Error generating image with pollinations package: {str(e)}")
         return False
 
 def generate_wallpaper(prompt, display_index, output_file, save_dir=None):
@@ -94,22 +69,17 @@ def generate_wallpaper(prompt, display_index, output_file, save_dir=None):
     # Use current timestamp + display index as seed for uniqueness
     seed = int(time.time()) + display_index
     
-    # Use maximum supported resolution for highest quality
-    # Flux model supports up to 2048x2048, but we'll use 1920x1080 for standard wallpaper format
-    # For ultra-high quality, you can try 2048x1152 (16:9 aspect ratio)
-    width = 2048
-    height = 1152  # 16:9 aspect ratio for widescreen displays
+    # Use high resolution for quality wallpapers
+    width = 1024
+    height = 1024  # Square format as shown in your example
     
     print(f"Generating wallpaper for display {display_index}")
     print(f"Resolution: {width}x{height}")
     print(f"Seed: {seed}")
     print(f"Prompt: {prompt}")
     
-    # Try pollinations package first, then fall back to direct API
-    success = download_image_with_package(prompt, width, height, seed, output_file)
-    
-    if not success:
-        success = download_image_direct_api(prompt, width, height, seed, output_file)
+    # Generate wallpaper using pollinations package
+    success = generate_wallpaper_with_pollinations(prompt, width, height, seed, output_file)
     
     # Save copy to save directory if provided
     if success and save_dir:
