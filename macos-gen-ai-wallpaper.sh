@@ -2,19 +2,18 @@
 
 source ~/.zshrc
 
-# Check if API key and prompt are provided
-if [ $# -lt 2 ]; then
-    echo "Usage: $0 <API_KEY> \"<PROMPT>\" [SAVE_DIRECTORY]"
+# Check if prompt is provided
+if [ $# -lt 1 ]; then
+    echo "Usage: $0 \"<PROMPT>\" [SAVE_DIRECTORY]"
     exit 1
 fi
 
 # Assign command line arguments to variables
-API_KEY="$1"
-PROMPT="$2"
+PROMPT="$1"
 
 # Optional directory to save all generated images
-if [ $# -ge 3 ]; then
-    SAVE_DIR="$3"
+if [ $# -ge 2 ]; then
+    SAVE_DIR="$2"
     mkdir -p "$SAVE_DIR"
 else
     SAVE_DIR=""
@@ -43,6 +42,31 @@ if ! command -v wallpaper &>/dev/null; then
     echo "'wallpaper-cli' is not installed. Please install it using:"
     echo "npm install --global wallpaper-cli"
     exit 1
+fi
+
+# Ensure Python3 is installed
+if ! command -v python3 &>/dev/null; then
+    echo "'python3' is not installed. Please install Python 3."
+    exit 1
+fi
+
+# Check if requests module is available
+python3 -c "import requests" 2>/dev/null
+if [ $? -ne 0 ]; then
+    echo "Python 'requests' module is not installed. Installing it now..."
+    python3 -m pip install requests
+    if [ $? -ne 0 ]; then
+        echo "Failed to install requests module. Please install it manually:"
+        echo "pip3 install requests"
+        exit 1
+    fi
+fi
+
+# Check if pollinations package is available (optional)
+python3 -c "import pollinations" 2>/dev/null
+if [ $? -ne 0 ]; then
+    echo "Optional: Installing pollinations package for enhanced features..."
+    python3 -m pip install pollinations 2>/dev/null || echo "Note: pollinations package installation failed, will use direct API method"
 fi
 
 # Set wallpapers from previous images in the queued directory
@@ -74,69 +98,45 @@ done
 
 # Force a refresh of the desktop
 killall Dock
-# Now proceed to generate new images
-echo "Generating new wallpapers..."
+# Now proceed to generate new images using Python
+echo "Generating new wallpapers using Python with highest quality settings..."
 
-# Prepare the request payload template (unchanged)
-REQUEST_PAYLOAD_TEMPLATE='{
-    "prompt": "$PROMPT",
-    "n": 1,
-    "size": "1792x1024",
-    "quality": "hd",
-    "model": "dall-e-3"
-}'
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PYTHON_SCRIPT="$SCRIPT_DIR/generate_wallpaper.py"
 
-# Loop over each display, generate an image, and save it to QUEUED_DIR
+# Check if Python script exists
+if [ ! -f "$PYTHON_SCRIPT" ]; then
+    echo "Error: Python wallpaper generator script not found at $PYTHON_SCRIPT"
+    exit 1
+fi
+
+# Loop over each display and generate high-quality images using Python
 for ((index = 1; index <= NUM_DISPLAYS; index++)); do
-    echo "Processing display $index"
+    echo "Processing display $index with Python generator"
 
-    # Prepare the request payload for this display
-    REQUEST_PAYLOAD=$(echo "$REQUEST_PAYLOAD_TEMPLATE" | sed "s/\\\$PROMPT/$PROMPT/g")
-
-    # Print the request payload for debugging
-    echo "Request payload for display $index: $REQUEST_PAYLOAD"
-
-    # Request image generation from OpenAI API
-    RESPONSE=$(curl -s https://api.openai.com/v1/images/generations \
-        -H "Content-Type: application/json" \
-        -H "Authorization: Bearer $API_KEY" \
-        -d "$REQUEST_PAYLOAD")
-
-    # Print the response for debugging
-    echo "API response for display $index: $RESPONSE"
-
-    # Extract image URL from the API response
-    IMAGE_URL=$(echo "$RESPONSE" | grep -o '"url": "[^"]*' | grep -o 'http[^"]*')
-
-    # Check if an image URL was found
-    if [ -z "$IMAGE_URL" ]; then
-        echo "Failed to retrieve image URL from API response for display $index."
-        continue
-    fi
-
-    # Download the generated image
     QUEUED_IMAGE_FILE="$QUEUED_DIR/wallpaper_display_${index}.png"
-    echo "Downloading image to: $QUEUED_IMAGE_FILE"
-    curl -s "$IMAGE_URL" -o "$QUEUED_IMAGE_FILE"
-
-    # Verify that the image was downloaded
-    if [ -f "$QUEUED_IMAGE_FILE" ]; then
-        echo "Image downloaded successfully for display $index"
-    else
-        echo "Failed to download image for display $index"
-        continue
-    fi
-
-    # Print the URL and the path where the image is saved
-    echo "Image URL for display $index: $IMAGE_URL"
-    echo "Saved to queued images: $QUEUED_IMAGE_FILE"
-
-    # Save a copy to the SAVE_DIR with a timestamp if SAVE_DIR is provided
+    
+    echo "Generating ultra-high quality wallpaper (2048x1152) for display $index..."
+    
+    # Call Python script to generate wallpaper
     if [ -n "$SAVE_DIR" ]; then
-        TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-        SAVE_IMAGE_FILE="$SAVE_DIR/wallpaper_display_${index}_${TIMESTAMP}.png"
-        cp "$QUEUED_IMAGE_FILE" "$SAVE_IMAGE_FILE"
-        echo "Saved copy to: $SAVE_IMAGE_FILE"
+        python3 "$PYTHON_SCRIPT" "$PROMPT" "$index" "$QUEUED_IMAGE_FILE" "$SAVE_DIR"
+    else
+        python3 "$PYTHON_SCRIPT" "$PROMPT" "$index" "$QUEUED_IMAGE_FILE"
+    fi
+    
+    # Check if Python script succeeded
+    if [ $? -eq 0 ] && [ -f "$QUEUED_IMAGE_FILE" ] && [ -s "$QUEUED_IMAGE_FILE" ]; then
+        echo "High-quality wallpaper generated successfully for display $index"
+        echo "Saved to queued images: $QUEUED_IMAGE_FILE"
+        
+        # Get file size for verification
+        FILE_SIZE=$(du -h "$QUEUED_IMAGE_FILE" | cut -f1)
+        echo "File size: $FILE_SIZE"
+    else
+        echo "Failed to generate wallpaper for display $index"
+        continue
     fi
 done
 
