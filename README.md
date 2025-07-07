@@ -3,7 +3,7 @@
 A powerful Python script that generates tranquil AI wallpapers using Google Gemini 2.5 Pro for prompt enhancement and Pollinations (Flux) for 100% free wallpaper image generation, further applying advanced AI post-processing effects to produce serene, beautiful masterpieces.
 
 - Changes the wallpaper daily with peaceful, stunning imagery
-- I recommend upscaling the result with Upscayl as Pollinations is limited to a certain resolution.
+- I recommend upscaling the result with Upscayl (16x, Double Upscale) as Pollinations is limited to a certain resolution.
 
 - Inspired by the macos-gen-ai-wallpaper repo and created by CY83R-3X71NC710N
 
