@@ -97,12 +97,12 @@ def enhance_prompt_with_gemini(user_prompt):
     try:
         if not GEMINI_AVAILABLE:
             print("  Gemini not available, using original prompt")
-            return user_prompt
+            return add_no_text_instruction(user_prompt)
         
         api_key = os.getenv('GOOGLE_API_KEY')
         if not api_key:
             print("  No Gemini API key found, using original prompt")
-            return user_prompt
+            return add_no_text_instruction(user_prompt)
         
         print("  Enhancing prompt with Gemini 2.5 Pro...")
         
@@ -117,6 +117,7 @@ Transform this prompt into a detailed, vivid description that will generate beau
 - Artistic style and quality descriptors
 - Wallpaper-appropriate elements (suitable for desktop backgrounds)
 - Professional photography/art terminology
+- IMPORTANT: The image must contain NO TEXT, NO LETTERS, NO WORDS, NO CAPTIONS
 
 Keep the core concept but make it much more descriptive and visually rich. Keep response under 200 words.
 
@@ -131,19 +132,21 @@ Enhanced prompt:"""
         )
         
         enhanced_prompt = response.text.strip()
+        # Ensure no text instruction is included
+        enhanced_prompt = add_no_text_instruction(enhanced_prompt)
         print(f"  ✓ Enhanced: {enhanced_prompt[:100]}...")
         return enhanced_prompt
         
     except Exception as e:
         print(f"  ⚠ Gemini enhancement failed: {str(e)}")
         print("  Using original prompt")
-        return user_prompt
+        return add_no_text_instruction(user_prompt)
 
 def generate_wallpaper(prompt, width, height, seed, output_file, private=False, no_enhance=False):
     """Generate wallpaper using Gemini-enhanced prompts and Pollinations API"""
     try:
         print(f"Generating wallpaper...")
-        print(f"  Model: Pollinations AI")
+        print(f"  Model: Pollinations AI (Flux)")
         print(f"  Resolution: {width}x{height}")
         print(f"  Seed: {seed}")
         print(f"  Private mode: {'Yes' if private else 'No'}")
@@ -154,7 +157,7 @@ def generate_wallpaper(prompt, width, height, seed, output_file, private=False, 
             enhanced_prompt = enhance_prompt_with_gemini(prompt)
         else:
             print("  Private mode: skipping prompt enhancement")
-            enhanced_prompt = prompt
+            enhanced_prompt = add_no_text_instruction(prompt)
         
         print(f"  Final prompt: {enhanced_prompt}")
         
@@ -405,7 +408,16 @@ def enhance_image_quality(image_path, output_path=None):
         if output_path is None:
             output_path = image_path
         
-        print("  Applying post-processing effects...")
+        print("  Applying advanced post-processing effects...")
+        print("    • Brightness enhancement for vivid appearance")
+        print("    • Enhanced contrast for dynamic range")
+        print("    • Increased color saturation for vibrancy")
+        print("    • Advanced noise reduction and grain removal") 
+        print("    • HDR-like local contrast enhancement")
+        print("    • Gamma correction for optimal brightness")
+        print("    • Edge enhancement for crystal-clear details")
+        print("    • Color temperature optimization")
+        print("    • Vivid color enhancement for maximum impact")
         
         # Open the image
         with Image.open(image_path) as img:
@@ -416,26 +428,39 @@ def enhance_image_quality(image_path, output_path=None):
             # Apply enhancements
             enhanced_img = img.copy()
             
-            # 1. Enhance contrast (subtle increase)
+            # 1. Enhance brightness for vivid appearance
+            brightness_enhancer = ImageEnhance.Brightness(enhanced_img)
+            enhanced_img = brightness_enhancer.enhance(1.12)  # 12% brightness boost for vibrancy
+            
+            # 2. Enhance contrast for more dynamic range
             contrast_enhancer = ImageEnhance.Contrast(enhanced_img)
-            enhanced_img = contrast_enhancer.enhance(1.15)  # 15% contrast boost
+            enhanced_img = contrast_enhancer.enhance(1.25)  # 25% contrast boost for depth
             
-            # 2. Enhance color saturation slightly
+            # 3. Enhance color saturation for vivid colors
             color_enhancer = ImageEnhance.Color(enhanced_img)
-            enhanced_img = color_enhancer.enhance(1.1)  # 10% saturation boost
+            enhanced_img = color_enhancer.enhance(1.35)  # 35% saturation boost for vibrancy
             
-            # 3. Apply subtle sharpening
+            # 4. Apply sharpening for crisp quality
             sharpness_enhancer = ImageEnhance.Sharpness(enhanced_img)
-            enhanced_img = sharpness_enhancer.enhance(1.1)  # 10% sharpening
+            enhanced_img = sharpness_enhancer.enhance(1.2)  # 20% sharpening for clarity
             
-            # 4. Apply HDR-like local contrast enhancement
+            # 4. Apply advanced noise reduction and grain removal
+            enhanced_img = reduce_noise_and_grain(enhanced_img)
+            
+            # 5. Apply HDR-like local contrast enhancement
             enhanced_img = apply_hdr_effect(enhanced_img)
             
-            # 5. Apply gamma correction for better brightness balance
-            enhanced_img = apply_gamma_correction(enhanced_img, gamma=1.1)
+            # 6. Apply gamma correction for optimal brightness balance
+            enhanced_img = apply_gamma_correction(enhanced_img, gamma=1.05)
             
-            # 6. Apply subtle noise reduction
-            enhanced_img = enhanced_img.filter(ImageFilter.SMOOTH_MORE)
+            # 7. Apply edge enhancement for crisp details
+            enhanced_img = enhance_edges(enhanced_img)
+            
+            # 8. Apply final brightness and color optimization
+            enhanced_img = optimize_brightness_and_color(enhanced_img)
+            
+            # 9. Apply final vivid color enhancement
+            enhanced_img = apply_vivid_color_enhancement(enhanced_img)
             
             # Save the enhanced image with high quality
             enhanced_img.save(output_path, 'JPEG', quality=95, optimize=True)
@@ -461,8 +486,8 @@ def apply_hdr_effect(img):
         # Calculate local contrast mask
         contrast_mask = img_array.astype(np.float32) - blurred_array.astype(np.float32)
         
-        # Apply subtle HDR effect
-        hdr_strength = 0.3  # Subtle effect to avoid over-processing
+        # Apply subtle HDR effect for more dynamic range
+        hdr_strength = 0.5  # Increased for more vivid local contrast
         enhanced_array = img_array.astype(np.float32) + (contrast_mask * hdr_strength)
         
         # Clip values to valid range
@@ -475,8 +500,8 @@ def apply_hdr_effect(img):
         # If HDR processing fails, return original image
         return img
 
-def apply_gamma_correction(img, gamma=1.1):
-    """Apply gamma correction for better brightness balance"""
+def apply_gamma_correction(img, gamma=1.05):
+    """Apply gamma correction for optimal brightness balance"""
     try:
         # Convert to numpy array
         img_array = np.array(img)
@@ -494,9 +519,185 @@ def apply_gamma_correction(img, gamma=1.1):
         # If gamma correction fails, return original image
         return img
 
+def reduce_noise_and_grain(img):
+    """Apply advanced noise reduction and grain removal"""
+    try:
+        # Convert to numpy array for advanced processing
+        img_array = np.array(img)
+        
+        # Apply bilateral filter-like noise reduction
+        # This preserves edges while reducing noise in smooth areas
+        from PIL import ImageFilter
+        
+        # Step 1: Apply gentle Gaussian blur to reduce high-frequency noise
+        denoised = img.filter(ImageFilter.GaussianBlur(radius=0.5))
+        denoised_array = np.array(denoised)
+        
+        # Step 2: Create edge mask to preserve important details
+        # Convert to grayscale for edge detection
+        gray = img.convert('L')
+        edges = gray.filter(ImageFilter.FIND_EDGES)
+        edge_array = np.array(edges)
+        
+        # Normalize edge mask to 0-1 range
+        edge_mask = edge_array.astype(np.float32) / 255.0
+        edge_mask = np.stack([edge_mask, edge_mask, edge_mask], axis=2)  # Make RGB
+        
+        # Step 3: Blend original and denoised based on edge strength
+        # Strong edges keep original detail, smooth areas get denoised
+        blend_factor = 0.3  # How much denoising to apply
+        result_array = (
+            img_array.astype(np.float32) * edge_mask +
+            denoised_array.astype(np.float32) * (1 - edge_mask) * (1 - blend_factor) +
+            img_array.astype(np.float32) * (1 - edge_mask) * blend_factor
+        ).astype(np.uint8)
+        
+        return Image.fromarray(result_array)
+        
+    except Exception:
+        # If noise reduction fails, return original image
+        return img
+
+def enhance_edges(img):
+    """Apply subtle edge enhancement for crisp details"""
+    try:
+        # Convert to numpy array
+        img_array = np.array(img)
+        
+        # Create edge-enhanced version using unsharp masking
+        # Apply gentle blur
+        blurred = img.filter(ImageFilter.GaussianBlur(radius=1.0))
+        blurred_array = np.array(blurred)
+        
+        # Calculate detail mask (difference between original and blurred)
+        detail_mask = img_array.astype(np.float32) - blurred_array.astype(np.float32)
+        
+        # Apply enhanced unsharp masking for crystal-clear details
+        unsharp_strength = 0.6  # Increased for sharper, more defined details
+        enhanced_array = img_array.astype(np.float32) + (detail_mask * unsharp_strength)
+        
+        # Clip values to valid range
+        enhanced_array = np.clip(enhanced_array, 0, 255).astype(np.uint8)
+        
+        return Image.fromarray(enhanced_array)
+        
+    except Exception:
+        # If edge enhancement fails, return original image
+        return img
+
+def optimize_brightness_and_color(img):
+    """Apply final brightness and color optimization"""
+    try:
+        # Convert to numpy array for histogram analysis
+        img_array = np.array(img)
+        
+        # Analyze histogram to optimize brightness
+        # Calculate mean brightness across all channels
+        mean_brightness = np.mean(img_array)
+        
+        # Apply brightness adjustment for vivid appearance
+        if mean_brightness < 120:  # Image needs brightness boost
+            brightness_enhancer = ImageEnhance.Brightness(img)
+            img = brightness_enhancer.enhance(1.15)  # Stronger brightness boost for vibrancy
+        elif mean_brightness > 200:  # Image is too bright
+            brightness_enhancer = ImageEnhance.Brightness(img)
+            img = brightness_enhancer.enhance(0.92)  # Slight brightness reduction
+        
+        # Apply adaptive contrast enhancement based on image characteristics
+        img_array = np.array(img)
+        
+        # Calculate contrast (standard deviation of pixel values)
+        contrast_measure = np.std(img_array)
+        
+        if contrast_measure < 45:  # Low contrast image needs more punch
+            contrast_enhancer = ImageEnhance.Contrast(img)
+            img = contrast_enhancer.enhance(1.3)  # Strong contrast boost for vivid appearance
+        elif contrast_measure > 75:  # High contrast image
+            contrast_enhancer = ImageEnhance.Contrast(img)
+            img = contrast_enhancer.enhance(1.1)  # Gentle contrast enhancement
+        
+        # Apply subtle color temperature optimization
+        # Analyze color balance and apply gentle corrections
+        img_array = np.array(img)
+        r_mean = np.mean(img_array[:, :, 0])
+        g_mean = np.mean(img_array[:, :, 1])
+        b_mean = np.mean(img_array[:, :, 2])
+        
+        # If image is too warm or cool, apply gentle correction
+        if r_mean > b_mean + 15:  # Too warm
+            # Slightly reduce red, boost blue
+            img_array = img_array.astype(np.float32)
+            img_array[:, :, 0] *= 0.98  # Reduce red slightly
+            img_array[:, :, 2] *= 1.02  # Boost blue slightly
+            img_array = np.clip(img_array, 0, 255).astype(np.uint8)
+            img = Image.fromarray(img_array)
+        elif b_mean > r_mean + 15:  # Too cool
+            # Slightly reduce blue, boost red
+            img_array = img_array.astype(np.float32)
+            img_array[:, :, 0] *= 1.02  # Boost red slightly
+            img_array[:, :, 2] *= 0.98  # Reduce blue slightly
+            img_array = np.clip(img_array, 0, 255).astype(np.uint8)
+            img = Image.fromarray(img_array)
+        
+        return img
+        
+    except Exception:
+        # If optimization fails, return original image
+        return img
+
+def apply_vivid_color_enhancement(img):
+    """Apply final vivid color enhancement for bright, vibrant wallpapers"""
+    try:
+        # Convert to numpy array for advanced color processing
+        img_array = np.array(img).astype(np.float32)
+        
+        # Apply selective color enhancement
+        # Boost vibrant colors while preserving skin tones and neutrals
+        
+        # Separate RGB channels
+        r, g, b = img_array[:, :, 0], img_array[:, :, 1], img_array[:, :, 2]
+        
+        # Enhance blues (sky, water) - make them more vibrant
+        blue_mask = (b > r * 1.1) & (b > g * 1.1)
+        b[blue_mask] = np.clip(b[blue_mask] * 1.15, 0, 255)
+        
+        # Enhance greens (foliage, nature) - make them more lush
+        green_mask = (g > r * 1.1) & (g > b * 1.1)
+        g[green_mask] = np.clip(g[green_mask] * 1.12, 0, 255)
+        
+        # Enhance warm colors (sunsets, fire) - make them more golden
+        warm_mask = (r > g * 1.1) & (r > b * 1.2)
+        r[warm_mask] = np.clip(r[warm_mask] * 1.08, 0, 255)
+        g[warm_mask] = np.clip(g[warm_mask] * 1.05, 0, 255)
+        
+        # Combine enhanced channels
+        enhanced_array = np.stack([r, g, b], axis=2).astype(np.uint8)
+        enhanced_img = Image.fromarray(enhanced_array)
+        
+        # Apply final saturation boost for overall vibrancy
+        color_enhancer = ImageEnhance.Color(enhanced_img)
+        enhanced_img = color_enhancer.enhance(1.1)  # Additional 10% saturation
+        
+        return enhanced_img
+        
+    except Exception:
+        # If vivid enhancement fails, return original image
+        return img
+
+def add_no_text_instruction(prompt):
+    """Add 'no text' instruction to any prompt to ensure clean wallpapers"""
+    # Add the instruction if not already present
+    no_text_keywords = ['no text', 'no letters', 'no words', 'no captions']
+    prompt_lower = prompt.lower()
+    
+    if not any(keyword in prompt_lower for keyword in no_text_keywords):
+        prompt += ", no text, no letters, no words, no captions"
+    
+    return prompt
+
 def main():
     parser = argparse.ArgumentParser(description="Generate AI wallpapers using Gemini-enhanced prompts and Pollinations")
-    parser.add_argument("prompt", help="Text prompt for image generation")
+    parser.add_argument("prompt", nargs='?', help="Text prompt for image generation")
     parser.add_argument("--displays", type=int, help="Number of displays (auto-detect if not specified)")
     parser.add_argument("--save-dir", help="Directory to save copies of generated images")
     parser.add_argument("--resolution", help="Image resolution (e.g., 1920x1080, 2560x1440)")
@@ -517,6 +718,13 @@ def main():
     if args.setup:
         success = setup_dependencies()
         sys.exit(0 if success else 1)
+    
+    # Check if prompt is provided when needed
+    if not args.prompt:
+        print("Error: prompt is required for wallpaper generation")
+        print("Use --setup flag to install dependencies without generating wallpapers")
+        parser.print_help()
+        sys.exit(1)
     
     # Check if requests is available (needed for Pollinations)
     try:
@@ -543,7 +751,7 @@ def main():
     
     print(f"Generating wallpapers for {displays} display(s)")
     print(f"Resolution: {width}x{height}")
-    print(f"Engine: Pollinations AI{' (with Gemini enhancement)' if not args.private and GEMINI_AVAILABLE else ''}")
+    print(f"Engine: Pollinations AI (Flux){' with Gemini enhancement' if not args.private and GEMINI_AVAILABLE else ''}")
     print(f"Post-processing: {'Enabled' if not args.no_enhance and IMAGE_PROCESSING_AVAILABLE else 'Disabled'}")
     
     # Create directories

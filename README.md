@@ -1,6 +1,9 @@
 # macOS AI Wallpaper Generator
 
-A powerful Python script that generates AI wallpapers using Google Gemini 2.5 Pro for prompt enhancement and Pollinations for image generation, then sets them as desktop backgrounds on macOS.
+A powerful Python script that generates AI wallpapers using Google Gemini 2.5 Pro for prompt enhancement and Pollinations for image generation, t#### Disable Post-Processing
+```bash
+python3 wallpaper_generator.py "nature scene" --no-enhance
+```sets them as desktop backgrounds on macOS.
 
 ## ✨ Example Output
 
@@ -14,12 +17,14 @@ This breathtaking 5K wallpaper showcases the quality you can expect for the low 
 - **Perfect composition** with glass-like water reflections  
 - **Professional lighting** creating depth and atmosphere
 - **5120x2880 resolution** for crisp display on any screen
+- **Advanced post-processing** with noise reduction, HDR effects, and quality optimization
 
 ## Features
 
 - **Single Script**: All functionality consolidated into one Python file
 - **Intelligent Prompt Enhancement**: Uses Google Gemini 2.5 Pro to enhance prompts for better AI-generated wallpapers
 - **High-Quality Image Generation**: Uses Pollinations AI with the Flux model for stunning wallpapers
+- **Advanced Post-Processing**: Automatic image enhancement with noise reduction, HDR effects, gamma correction, edge enhancement, and quality optimization
 - **Multiple Wallpaper Tools**: Supports wallpaper-cli, m-cli, and AppleScript for setting wallpapers
 - **Multi-Display Support**: Automatically detects and generates wallpapers for multiple displays
 - **5K Resolution**: Generates up to 5120x2880 resolution for maximum quality on macOS displays
@@ -130,6 +135,7 @@ options:
   --queue-dir QUEUE_DIR
                         Directory for queued wallpaper images
   --private             Skip prompt enhancement and use minimal parameters
+  --no-enhance          Disable post-processing image enhancement effects
   --setup               Install required dependencies
   --generate-only       Only generate images, don't set as wallpaper
 ```
@@ -187,16 +193,40 @@ When a Google API key is available and not in private mode, the script uses Gemi
 
 This results in significantly more detailed and visually stunning wallpapers.
 
+## Advanced Post-Processing
+
+The wallpaper generator automatically applies professional-grade image enhancement effects to improve visual quality:
+
+### Automatic Enhancement Features
+- **Noise Reduction**: Advanced algorithms remove grain and image artifacts while preserving important details
+- **HDR-like Effects**: Local contrast enhancement creates depth and visual impact
+- **Gamma Correction**: Optimizes brightness balance across different lighting conditions  
+- **Edge Enhancement**: Subtle sharpening increases detail clarity without over-processing
+- **Color Optimization**: Automatic brightness and color temperature adjustments for optimal visual appeal
+- **Contrast Enhancement**: Intelligent contrast boosting based on image characteristics
+
+### Post-Processing Control
+- **Enabled by Default**: All generated wallpapers receive automatic enhancement
+- **Disable Option**: Use `--no-enhance` flag to skip post-processing for faster generation
+- **Quality Preservation**: All effects are carefully calibrated to avoid artifacts or over-processing
+
+**Example Enhancement Process:**
+```
+Original Image → Noise Reduction → HDR Effects → Gamma Correction → 
+Edge Enhancement → Color Optimization → Final High-Quality Wallpaper
+```
+
 ## Quality & Examples
 
 ### What Makes These Wallpapers Special
 
-The combination of **Gemini 2.5 Pro** prompt enhancement + **Pollinations AI** generation creates wallpapers with:
+The combination of **Gemini 2.5 Pro** prompt enhancement + **Pollinations AI** generation + **Advanced Post-Processing** creates wallpapers with:
 
 - **🎨 Professional Quality**: Cinematic lighting, perfect composition, and photorealistic details
 - **🖥️ Retina Ready**: Default 5K resolution (5120x2880) for crisp display on any screen
 - **🎯 Perfect Prompts**: Gemini transforms simple prompts into detailed artistic descriptions
-- **⚡ Fast Generation**: Typically completes in 10-30 seconds
+- **✨ Enhanced Processing**: Automatic noise reduction, HDR effects, and quality optimization
+- **⚡ Fast Generation**: Typically completes in 10-30 seconds including post-processing
 - **🎨 Artistic Variety**: Supports landscapes, abstract art, cityscapes, space scenes, and more
 
 ### Prompt Enhancement Examples
