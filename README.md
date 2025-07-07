@@ -2,6 +2,19 @@
 
 A powerful Python script that generates AI wallpapers using Google Gemini 2.5 Pro for prompt enhancement and Pollinations for image generation, then sets them as desktop backgrounds on macOS.
 
+## ✨ Example Output
+
+Here's an example of the stunning wallpapers this generator creates:
+
+![Example Wallpaper](example_wallpaper.jpg)
+*Generated from prompt: "serene forest lake" - Enhanced by Gemini 2.5 Pro into a detailed, cinematic description*
+
+This breathtaking 5K wallpaper showcases the quality you can expect for the low price of free, featuring:
+- **Photorealistic detail** with morning mist and golden sunlight
+- **Perfect composition** with glass-like water reflections  
+- **Professional lighting** creating depth and atmosphere
+- **5120x2880 resolution** for crisp display on any screen
+
 ## Features
 
 - **Single Script**: All functionality consolidated into one Python file
@@ -173,6 +186,34 @@ When a Google API key is available and not in private mode, the script uses Gemi
 **Enhanced**: `"Breathtaking mountain landscape with dramatic peaks piercing through morning clouds, golden hour lighting casting warm glows across snow-capped summits, pristine alpine meadows with wildflowers in the foreground, crystal clear mountain lake reflecting the majestic scenery, professional landscape photography, ultra-high resolution, cinematic composition"`
 
 This results in significantly more detailed and visually stunning wallpapers.
+
+## Quality & Examples
+
+### What Makes These Wallpapers Special
+
+The combination of **Gemini 2.5 Pro** prompt enhancement + **Pollinations AI** generation creates wallpapers with:
+
+- **🎨 Professional Quality**: Cinematic lighting, perfect composition, and photorealistic details
+- **🖥️ Retina Ready**: Default 5K resolution (5120x2880) for crisp display on any screen
+- **🎯 Perfect Prompts**: Gemini transforms simple prompts into detailed artistic descriptions
+- **⚡ Fast Generation**: Typically completes in 10-30 seconds
+- **🎨 Artistic Variety**: Supports landscapes, abstract art, cityscapes, space scenes, and more
+
+### Prompt Enhancement Examples
+
+**Your Input:** `"mountain sunset"`
+
+**Gemini Enhanced:** `"A breathtaking panoramic mountain vista during golden hour, with dramatic peaks silhouetted against a blazing orange and pink sunset sky. Wispy clouds catch the warm light, creating depth and atmosphere. Professional landscape photography, ultra-high resolution, 8K quality."`
+
+**Result:** A stunning professional-quality wallpaper instead of a basic mountain image.
+
+### Supported Styles
+- 🏔️ **Landscapes**: Mountains, forests, lakes, deserts
+- 🌃 **Cityscapes**: Modern skylines, neon-lit streets, architectural marvels  
+- 🎨 **Abstract Art**: Geometric patterns, fluid dynamics, color studies
+- 🌌 **Space**: Nebulae, galaxies, cosmic phenomena
+- 🌊 **Nature**: Ocean waves, tropical scenes, seasonal imagery
+- **Custom**
 
 ## Troubleshooting
 
