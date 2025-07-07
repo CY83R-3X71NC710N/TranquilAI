@@ -144,7 +144,7 @@ def get_display_resolution():
                 return width, height
     except:
         pass
-    return 4096, 4096  # Default to 4K square for highest quality
+    return 5120, 2880  # Default to 5K resolution for maximum quality on macOS
 
 def set_wallpaper(image_path, display_index=None, tool=None):
     """Set wallpaper using the best available method"""
@@ -174,7 +174,7 @@ def set_wallpaper(image_path, display_index=None, tool=None):
         ]
     
     for method_name, method_func in methods:
-        if check_wallpaper_tool(method_name.lower().replace("-", "_")):
+        if check_wallpaper_tool(method_name):
             try:
                 if method_func(abs_image_path, display_index):
                     print(f"✓ Wallpaper set successfully using {method_name}")
@@ -311,8 +311,8 @@ def main():
             print("Invalid resolution format. Use format like: 1920x1080")
             sys.exit(1)
     else:
-        # Use highest quality resolution for best results
-        width, height = 4096, 4096  # 4K square resolution for maximum quality and compatibility
+        # Use 5K resolution for maximum quality on macOS
+        width, height = 5120, 2880  # 5K resolution - highest quality for macOS displays
     
     # Determine number of displays
     displays = args.displays or get_display_count()
@@ -336,9 +336,13 @@ def main():
     if not args.generate_only:
         print("\n=== Setting Queued Wallpapers ===")
         for display_idx in range(1, displays + 1):
-            queued_file = queue_dir / f"wallpaper_display_{display_idx}.jpg"
-            if queued_file.exists():
-                set_wallpaper(str(queued_file), display_idx, args.tool)
+            # Look for the most recent wallpaper file for this display
+            pattern = f"wallpaper_display_{display_idx}_*.jpg"
+            matching_files = list(queue_dir.glob(pattern))
+            if matching_files:
+                # Sort by modification time and get the most recent
+                most_recent = max(matching_files, key=lambda f: f.stat().st_mtime)
+                set_wallpaper(str(most_recent), display_idx, args.tool)
             else:
                 print(f"No queued wallpaper for display {display_idx}")
         
@@ -367,12 +371,12 @@ def main():
         if generate_wallpaper_with_pollinations(args.prompt, width, height, seed, str(output_file)):
             success_count += 1
             
-            # Always copy to queue directory for wallpaper setting
-            queue_file = queue_dir / f"wallpaper_display_{display_idx}.jpg"
+            # Create unique queue filename to avoid caching issues
+            queue_file = queue_dir / f"wallpaper_display_{display_idx}_{timestamp}.jpg"
             try:
                 shutil.copy2(str(output_file), str(queue_file))
                 print(f"✓ Saved timestamped copy: {output_file}")
-                print(f"✓ Updated queue file: {queue_file}")
+                print(f"✓ Created queue file: {queue_file}")
             except Exception as e:
                 print(f"⚠ Failed to copy to queue: {e}")
             
