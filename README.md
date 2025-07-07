@@ -1,9 +1,6 @@
 # macOS AI Wallpaper Generator
 
-A powerful Python script that generates AI wallpapers using Google Gemini 2.5 Pro for prompt enhancement and Pollinations for image generation, t#### Disable Post-Processing
-```bash
-python3 wallpaper_generator.py "nature scene" --no-enhance
-```sets them as desktop backgrounds on macOS.
+A powerful Python script that generates AI wallpapers using Google Gemini 2.5 Pro for prompt enhancement and Pollinations for image generation.
 
 ## ✨ Example Output
 
@@ -236,6 +233,13 @@ The combination of **Gemini 2.5 Pro** prompt enhancement + **Pollinations AI** g
 **Gemini Enhanced:** `"A breathtaking panoramic mountain vista during golden hour, with dramatic peaks silhouetted against a blazing orange and pink sunset sky. Wispy clouds catch the warm light, creating depth and atmosphere. Professional landscape photography, ultra-high resolution, 8K quality."`
 
 **Result:** A stunning professional-quality wallpaper instead of a basic mountain image.
+
+#### Disable Post-Processing
+```
+bash
+python3 wallpaper_generator.py "nature scene" --no-enhance
+sets them as desktop backgrounds on macOS.
+```
 
 ### Supported Styles
 - 🏔️ **Landscapes**: Mountains, forests, lakes, deserts
