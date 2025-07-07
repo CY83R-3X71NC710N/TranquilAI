@@ -5,23 +5,30 @@ A consolidated Python script that generates AI wallpapers using the Pollinations
 ## Features
 
 - **Single Script**: All functionality consolidated into one Python file
-- **Pollinations Only**: Uses only the `pollinations` library for AI image generation
+- **Pollinations API**: Uses the Pollinations API directly for AI image generation
 - **Multiple Wallpaper Tools**: Supports wallpaper-cli, m-cli, and AppleScript for setting wallpapers
 - **Multi-Display Support**: Automatically detects and generates wallpapers for multiple displays
 - **High Quality**: Uses the Flux model for best image quality
 - **Backup & Queue**: Saves copies and queues images for rotation
+- **No External Dependencies**: Only requires Python requests library
 
 ## Quick Start
 
 ### 1. Setup (One-time)
+
+**Option A: Easy Setup (Recommended)**
 ```bash
-python3 wallpaper_generator.py --setup
+./setup-easy.sh
 ```
 
-This will automatically:
-- Install the `pollinations` Python package
-- Install a wallpaper setting tool (wallpaper-cli or m-cli via Homebrew)
-- Set up all dependencies
+**Option B: Manual Setup**
+```bash
+# Install requests library if needed
+pip install requests --user
+
+# Run setup to install wallpaper tools
+python3 wallpaper_generator.py --setup
+```
 
 ### 2. Generate and Set Wallpapers
 ```bash
@@ -85,7 +92,7 @@ options:
 ## How It Works
 
 1. **Display Detection**: Automatically detects the number of connected displays
-2. **Image Generation**: Uses Pollinations API with Flux model for high-quality images
+2. **Image Generation**: Uses Pollinations API directly with Flux model for high-quality images
 3. **Queue System**: Saves images to a queue directory for rotation
 4. **Wallpaper Setting**: Uses the best available tool to set wallpapers per display
 5. **Desktop Refresh**: Refreshes the desktop to apply changes
@@ -96,10 +103,10 @@ options:
 - Python 3.6+
 - Internet connection for image generation
 
-## Dependencies (Auto-installed)
+## Dependencies
 
-- `pollinations` - AI image generation
-- `wallpaper-cli` or `m-cli` - Wallpaper setting (installed via setup)
+- `requests` - For API calls (auto-installed)
+- `wallpaper-cli` or `m-cli` - Wallpaper setting (auto-installed)
 
 ## Examples
 
@@ -124,6 +131,11 @@ options:
 ```
 
 ## Troubleshooting
+
+### Missing requests library
+If you get "requests library not found":
+1. Install it with: `pip install requests --user`
+2. Or run: `python3 wallpaper_generator.py --setup`
 
 ### Permission Issues
 If you get permission errors, make sure the script is executable:
@@ -156,6 +168,7 @@ This single script replaces:
 See `MIGRATION.md` for detailed migration instructions.
 
 ### Quick Migration
-1. Run setup: `python3 wallpaper_generator.py --setup`
-2. Test: `./generate-wallpaper "test prompt" --generate-only`
-3. Remove old files: `rm generate_wallpaper.py macos-gen-ai-wallpaper.sh setup.sh`
+1. Install requests: `pip install requests --user`
+2. Run setup: `python3 wallpaper_generator.py --setup`
+3. Test: `python3 wallpaper_generator.py "test prompt" --generate-only`
+4. Remove old files: `rm generate_wallpaper.py macos-gen-ai-wallpaper.sh setup.sh`

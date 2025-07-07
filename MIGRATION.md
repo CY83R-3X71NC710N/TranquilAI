@@ -14,7 +14,13 @@ The following files are now **obsolete** and can be safely deleted:
 
 ## 🔄 How to Migrate
 
-### Step 1: Run the new setup
+### Step 1: Install prerequisites
+```bash
+# Install requests library
+pip install requests --user
+```
+
+### Step 2: Run the new setup
 ```bash
 python3 wallpaper_generator.py --setup
 ```
@@ -45,10 +51,11 @@ rm setup.sh
 ### New Way
 ```bash
 # Setup (one time)
+pip install requests --user
 python3 wallpaper_generator.py --setup
 
 # Generate wallpaper
-./generate-wallpaper "mountain landscape" --save-dir ~/Pictures/Wallpapers
+python3 wallpaper_generator.py "mountain landscape" --save-dir ~/Pictures/Wallpapers
 ```
 
 ## ✨ New Features

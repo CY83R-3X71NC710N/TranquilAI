@@ -10,5 +10,14 @@ if [ ! -f "$PYTHON_SCRIPT" ]; then
     exit 1
 fi
 
+# Check if requests library is available
+python3 -c "import requests" 2>/dev/null
+if [ $? -ne 0 ]; then
+    echo "Error: requests library not found."
+    echo "Please install it with: pip install requests --user"
+    echo "Or run: python3 wallpaper_generator.py --setup"
+    exit 1
+fi
+
 # Pass all arguments to the Python script
 python3 "$PYTHON_SCRIPT" "$@"
