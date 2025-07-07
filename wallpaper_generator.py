@@ -12,6 +12,7 @@ import shutil
 import argparse
 import tempfile
 import urllib.parse
+import random
 from pathlib import Path
 
 try:
@@ -345,8 +346,8 @@ def main():
     for display_idx in range(1, displays + 1):
         print(f"\n--- Display {display_idx} ---")
         
-        # Use current timestamp + display index as seed for uniqueness
-        seed = int(time.time()) + display_idx
+        # Use random seed for uniqueness and variety
+        seed = random.randint(1, 2147483647)  # Use max int32 value for compatibility
         
         # Output file
         if args.save_dir:
