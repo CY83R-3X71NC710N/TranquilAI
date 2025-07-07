@@ -1,8 +1,8 @@
-# macOS AI Wallpaper Generator
+# TranquilAI - Serene AI Wallpaper Generator
 
-A powerful Python script that generates AI wallpapers using Google Gemini 2.5 Pro for prompt enhancement and Pollinations (Flux) for 100% free wallpaper image generation, further applying advanced AI post-processing effects to produce the final masterpiece.
+A powerful Python script that generates tranquil AI wallpapers using Google Gemini 2.5 Pro for prompt enhancement and Pollinations (Flux) for 100% free wallpaper image generation, further applying advanced AI post-processing effects to produce serene, beautiful masterpieces.
 
-- Changes the wallpaper daily
+- Changes the wallpaper daily with peaceful, stunning imagery
 
 - Inspired by the macos-gen-ai-wallpaper repo and created by CY83R-3X71NC710N
 
@@ -29,7 +29,7 @@ Here are examples of the stunning wallpapers this generator creates:
 
 ![Example Wallpaper 9](wallpaper_example_9.jpg)
 
-These breathtaking 5K wallpapers showcase the quality you can expect for the low price of free, featuring:
+These breathtaking 5K wallpapers showcase the tranquil quality you can expect for the low price of free, featuring:
 - **Photorealistic detail** with morning mist and golden sunlight
 - **Perfect composition** with glass-like water reflections  
 - **Professional lighting** creating depth and atmosphere
@@ -237,14 +237,14 @@ Edge Enhancement → Color Optimization → Final High-Quality Wallpaper
 
 ### What Makes These Wallpapers Special
 
-The combination of **Gemini 2.5 Pro** prompt enhancement + **Pollinations AI** generation + **Advanced Post-Processing** creates wallpapers with:
+The combination of **Gemini 2.5 Pro** prompt enhancement + **Pollinations AI** generation + **Advanced Post-Processing** creates serene wallpapers with:
 
 - **🎨 Professional Quality**: Cinematic lighting, perfect composition, and photorealistic details
 - **🖥️ Retina Ready**: Default 5K resolution (5120x2880) for crisp display on any screen
 - **🎯 Perfect Prompts**: Gemini transforms simple prompts into detailed artistic descriptions
 - **✨ Enhanced Processing**: Automatic noise reduction, HDR effects, and quality optimization
 - **⚡ Fast Generation**: Typically completes in 10-30 seconds including post-processing
-- **🎨 Artistic Variety**: Supports landscapes, abstract art, cityscapes, space scenes, and more
+- **🧘 Tranquil Aesthetics**: Specially optimized for peaceful, calming imagery
 
 ### Prompt Enhancement Examples
 
@@ -254,20 +254,13 @@ The combination of **Gemini 2.5 Pro** prompt enhancement + **Pollinations AI** g
 
 **Result:** A stunning professional-quality wallpaper instead of a basic mountain image.
 
-#### Disable Post-Processing
-```
-bash
-python3 wallpaper_generator.py "nature scene" --no-enhance
-sets them as desktop backgrounds on macOS.
-```
-
 ### Supported Styles
 - 🏔️ **Landscapes**: Mountains, forests, lakes, deserts
 - 🌃 **Cityscapes**: Modern skylines, neon-lit streets, architectural marvels  
 - 🎨 **Abstract Art**: Geometric patterns, fluid dynamics, color studies
 - 🌌 **Space**: Nebulae, galaxies, cosmic phenomena
 - 🌊 **Nature**: Ocean waves, tropical scenes, seasonal imagery
-- **Custom**
+- 🧘 **Tranquil Scenes**: Peaceful, meditative, and calming imagery
 
 ## Troubleshooting
 

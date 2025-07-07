@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-macOS AI Wallpaper Generator
+TranquilAI - Serene AI Wallpaper Generator
 Uses Google Gemini 2.5 Pro for prompt enhancement and Pollinations for image generation
 """
 
@@ -620,7 +620,7 @@ def parse_gemini_response(response_text):
         return response_text.strip()
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate AI wallpapers using Gemini-enhanced prompts and Pollinations")
+    parser = argparse.ArgumentParser(description="TranquilAI - Generate serene AI wallpapers using Gemini-enhanced prompts and Pollinations")
     parser.add_argument("prompt", nargs='?', help="Text prompt for image generation")
     parser.add_argument("--displays", type=int, help="Number of displays (auto-detect if not specified)")
     parser.add_argument("--save-dir", help="Directory to save copies of generated images")
