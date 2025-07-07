@@ -32,6 +32,14 @@ try:
 except ImportError:
     GEMINI_AVAILABLE = False
 
+# Try to import image processing dependencies
+try:
+    from PIL import Image, ImageEnhance, ImageFilter
+    import numpy as np
+    IMAGE_PROCESSING_AVAILABLE = True
+except ImportError:
+    IMAGE_PROCESSING_AVAILABLE = False
+
 def run_command(cmd, capture_output=True, shell=False):
     """Run a command and return the result."""
     try:
@@ -131,7 +139,7 @@ Enhanced prompt:"""
         print("  Using original prompt")
         return user_prompt
 
-def generate_wallpaper(prompt, width, height, seed, output_file, private=False):
+def generate_wallpaper(prompt, width, height, seed, output_file, private=False, no_enhance=False):
     """Generate wallpaper using Gemini-enhanced prompts and Pollinations API"""
     try:
         print(f"Generating wallpaper...")
@@ -150,7 +158,18 @@ def generate_wallpaper(prompt, width, height, seed, output_file, private=False):
         
         print(f"  Final prompt: {enhanced_prompt}")
         
-        return download_image_from_pollinations(enhanced_prompt, width, height, seed, "flux", output_file, private)
+        # Download the image first
+        download_success = download_image_from_pollinations(enhanced_prompt, width, height, seed, "flux", output_file, private)
+        
+        if download_success and not no_enhance:
+            # Apply post-processing effects to enhance image quality
+            enhanced_output = enhance_image_quality(output_file)
+            return enhanced_output == output_file  # Return True if processing succeeded
+        elif download_success and no_enhance:
+            print("  Post-processing disabled by user")
+            return True
+        
+        return False
         
     except Exception as e:
         print(f"✗ Error generating wallpaper: {str(e)}")
@@ -353,11 +372,127 @@ def setup_dependencies():
         else:
             print("✓ Gemini dependencies installed successfully")
     
+    # Check image processing dependencies
+    try:
+        from PIL import Image, ImageEnhance, ImageFilter
+        import numpy as np
+        print("✓ Image processing dependencies are available")
+    except ImportError:
+        print("Installing image processing dependencies...")
+        result = run_command([sys.executable, "-m", "pip", "install", "Pillow", "numpy", "--user"])
+        if not result or result.returncode != 0:
+            print("⚠ Failed to install image processing dependencies. Post-processing will be disabled.")
+        else:
+            print("✓ Image processing dependencies installed successfully")
+    
     # Install wallpaper tool
     tool = install_wallpaper_tool()
     
     print("✓ Setup complete!")
     return True
+
+def enhance_image_quality(image_path, output_path=None):
+    """
+    Apply post-processing effects to enhance image quality
+    Includes: contrast enhancement, HDR-like effects, gamma correction, sharpening
+    """
+    if not IMAGE_PROCESSING_AVAILABLE:
+        print("  Image processing libraries not available, skipping enhancement")
+        return image_path
+    
+    try:
+        # Use input path as output if not specified
+        if output_path is None:
+            output_path = image_path
+        
+        print("  Applying post-processing effects...")
+        
+        # Open the image
+        with Image.open(image_path) as img:
+            # Convert to RGB if necessary
+            if img.mode != 'RGB':
+                img = img.convert('RGB')
+            
+            # Apply enhancements
+            enhanced_img = img.copy()
+            
+            # 1. Enhance contrast (subtle increase)
+            contrast_enhancer = ImageEnhance.Contrast(enhanced_img)
+            enhanced_img = contrast_enhancer.enhance(1.15)  # 15% contrast boost
+            
+            # 2. Enhance color saturation slightly
+            color_enhancer = ImageEnhance.Color(enhanced_img)
+            enhanced_img = color_enhancer.enhance(1.1)  # 10% saturation boost
+            
+            # 3. Apply subtle sharpening
+            sharpness_enhancer = ImageEnhance.Sharpness(enhanced_img)
+            enhanced_img = sharpness_enhancer.enhance(1.1)  # 10% sharpening
+            
+            # 4. Apply HDR-like local contrast enhancement
+            enhanced_img = apply_hdr_effect(enhanced_img)
+            
+            # 5. Apply gamma correction for better brightness balance
+            enhanced_img = apply_gamma_correction(enhanced_img, gamma=1.1)
+            
+            # 6. Apply subtle noise reduction
+            enhanced_img = enhanced_img.filter(ImageFilter.SMOOTH_MORE)
+            
+            # Save the enhanced image with high quality
+            enhanced_img.save(output_path, 'JPEG', quality=95, optimize=True)
+            
+        print("  ✓ Post-processing effects applied successfully")
+        return output_path
+        
+    except Exception as e:
+        print(f"  ⚠ Post-processing failed: {str(e)}")
+        print("  Using original image")
+        return image_path
+
+def apply_hdr_effect(img):
+    """Apply HDR-like local contrast enhancement"""
+    try:
+        # Convert PIL image to numpy array
+        img_array = np.array(img)
+        
+        # Create a slightly blurred version for local contrast
+        blurred = img.filter(ImageFilter.GaussianBlur(radius=3))
+        blurred_array = np.array(blurred)
+        
+        # Calculate local contrast mask
+        contrast_mask = img_array.astype(np.float32) - blurred_array.astype(np.float32)
+        
+        # Apply subtle HDR effect
+        hdr_strength = 0.3  # Subtle effect to avoid over-processing
+        enhanced_array = img_array.astype(np.float32) + (contrast_mask * hdr_strength)
+        
+        # Clip values to valid range
+        enhanced_array = np.clip(enhanced_array, 0, 255).astype(np.uint8)
+        
+        # Convert back to PIL Image
+        return Image.fromarray(enhanced_array)
+        
+    except Exception:
+        # If HDR processing fails, return original image
+        return img
+
+def apply_gamma_correction(img, gamma=1.1):
+    """Apply gamma correction for better brightness balance"""
+    try:
+        # Convert to numpy array
+        img_array = np.array(img)
+        
+        # Apply gamma correction
+        # Normalize to 0-1, apply gamma, scale back to 0-255
+        normalized = img_array.astype(np.float32) / 255.0
+        gamma_corrected = np.power(normalized, 1.0 / gamma)
+        corrected_array = (gamma_corrected * 255).astype(np.uint8)
+        
+        # Convert back to PIL Image
+        return Image.fromarray(corrected_array)
+        
+    except Exception:
+        # If gamma correction fails, return original image
+        return img
 
 def main():
     parser = argparse.ArgumentParser(description="Generate AI wallpapers using Gemini-enhanced prompts and Pollinations")
@@ -373,6 +508,8 @@ def main():
                        help="Only generate images, don't set as wallpaper")
     parser.add_argument("--private", action="store_true", 
                        help="Enable private generation mode (no prompt enhancement, minimal parameters)")
+    parser.add_argument("--no-enhance", action="store_true",
+                       help="Disable post-processing image enhancement effects")
     
     args = parser.parse_args()
     
@@ -407,6 +544,7 @@ def main():
     print(f"Generating wallpapers for {displays} display(s)")
     print(f"Resolution: {width}x{height}")
     print(f"Engine: Pollinations AI{' (with Gemini enhancement)' if not args.private and GEMINI_AVAILABLE else ''}")
+    print(f"Post-processing: {'Enabled' if not args.no_enhance and IMAGE_PROCESSING_AVAILABLE else 'Disabled'}")
     
     # Create directories
     queue_dir = Path(args.queue_dir)
@@ -456,7 +594,7 @@ def main():
             output_file = saved_dir / f"wallpaper_display_{display_idx}_{timestamp}.jpg"
         
         # Generate wallpaper
-        if generate_wallpaper(args.prompt, width, height, seed, str(output_file), args.private):
+        if generate_wallpaper(args.prompt, width, height, seed, str(output_file), args.private, args.no_enhance):
             success_count += 1
             
             # Create unique queue filename to avoid caching issues
