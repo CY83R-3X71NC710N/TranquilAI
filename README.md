@@ -4,12 +4,28 @@ A powerful Python script that generates AI wallpapers using Google Gemini 2.5 Pr
 
 ## ✨ Example Output
 
-Here's an example of the stunning wallpapers this generator creates:
+Here are examples of the stunning wallpapers this generator creates:
 
 ![Example Wallpaper](example_wallpaper.jpg)
 *Generated from prompt: "serene forest lake" - Enhanced by Gemini 2.5 Pro into a detailed, cinematic description*
 
-This breathtaking 5K wallpaper showcases the quality you can expect for the low price of free, featuring:
+![Example Wallpaper 2](wallpaper_example_2.jpg)
+
+![Example Wallpaper 3](wallpaper_example_3.jpg)
+
+![Example Wallpaper 4](wallpaper_example_4.jpg)
+
+![Example Wallpaper 5](wallpaper_example_5.jpg)
+
+![Example Wallpaper 6](wallpaper_example_6.jpg)
+
+![Example Wallpaper 7](wallpaper_example_7.jpg)
+
+![Example Wallpaper 8](wallpaper_example_8.jpg)
+
+![Example Wallpaper 9](wallpaper_example_9.jpg)
+
+These breathtaking 5K wallpapers showcase the quality you can expect for the low price of free, featuring:
 - **Photorealistic detail** with morning mist and golden sunlight
 - **Perfect composition** with glass-like water reflections  
 - **Professional lighting** creating depth and atmosphere
