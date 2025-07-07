@@ -144,7 +144,7 @@ def get_display_resolution():
                 return width, height
     except:
         pass
-    return 1920, 1080
+    return 4096, 4096  # Default to 4K square for highest quality
 
 def set_wallpaper(image_path, display_index=None, tool=None):
     """Set wallpaper using the best available method"""
@@ -311,7 +311,8 @@ def main():
             print("Invalid resolution format. Use format like: 1920x1080")
             sys.exit(1)
     else:
-        width, height = get_display_resolution()
+        # Use highest quality resolution for best results
+        width, height = 4096, 4096  # 4K square resolution for maximum quality and compatibility
     
     # Determine number of displays
     displays = args.displays or get_display_count()
@@ -322,6 +323,10 @@ def main():
     # Create directories
     queue_dir = Path(args.queue_dir)
     queue_dir.mkdir(exist_ok=True)
+    
+    # Create a saved wallpapers directory to preserve all generated wallpapers
+    saved_dir = queue_dir / "saved"
+    saved_dir.mkdir(exist_ok=True)
     
     if args.save_dir:
         save_dir = Path(args.save_dir)
@@ -349,37 +354,47 @@ def main():
         # Use random seed for uniqueness and variety
         seed = random.randint(1, 2147483647)  # Use max int32 value for compatibility
         
-        # Output file
+        # Always create timestamped files to preserve wallpaper history
+        timestamp = time.strftime("%Y%m%d_%H%M%S")
+        
+        # Output file with timestamp to preserve all wallpapers
         if args.save_dir:
-            timestamp = time.strftime("%Y%m%d_%H%M%S")
             output_file = save_dir / f"wallpaper_display_{display_idx}_{timestamp}.jpg"
         else:
-            output_file = queue_dir / f"wallpaper_display_{display_idx}.jpg"
+            output_file = saved_dir / f"wallpaper_display_{display_idx}_{timestamp}.jpg"
         
         # Generate wallpaper
         if generate_wallpaper_with_pollinations(args.prompt, width, height, seed, str(output_file)):
             success_count += 1
             
-            # Copy to queue if we saved elsewhere
-            if args.save_dir:
-                queue_file = queue_dir / f"wallpaper_display_{display_idx}.jpg"
-                try:
-                    shutil.copy2(str(output_file), str(queue_file))
-                    print(f"✓ Copied to queue: {queue_file}")
-                except Exception as e:
-                    print(f"⚠ Failed to copy to queue: {e}")
+            # Always copy to queue directory for wallpaper setting
+            queue_file = queue_dir / f"wallpaper_display_{display_idx}.jpg"
+            try:
+                shutil.copy2(str(output_file), str(queue_file))
+                print(f"✓ Saved timestamped copy: {output_file}")
+                print(f"✓ Updated queue file: {queue_file}")
+            except Exception as e:
+                print(f"⚠ Failed to copy to queue: {e}")
+            
+            # Set the newly generated wallpaper immediately (if not generate-only mode)
+            if not args.generate_only:
+                set_wallpaper(str(queue_file), display_idx, args.tool)
         else:
             print(f"✗ Failed to generate wallpaper for display {display_idx}")
     
     print(f"\n=== Summary ===")
     print(f"Successfully generated {success_count}/{displays} wallpapers")
     
+    # Refresh desktop after all wallpapers are set
+    if success_count > 0 and not args.generate_only:
+        refresh_desktop()
+    
     if success_count > 0:
         print("✓ Wallpaper generation completed successfully")
         if args.generate_only:
             print("Images saved to queue directory for future use")
         else:
-            print("Run the script again to set the new wallpapers")
+            print("New wallpapers have been set automatically")
     else:
         print("✗ No wallpapers were generated successfully")
         sys.exit(1)
