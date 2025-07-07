@@ -402,8 +402,8 @@ def setup_dependencies():
 
 def enhance_image_quality(image_path, output_path=None):
     """
-    Apply post-processing effects to enhance image quality
-    Includes: contrast enhancement, HDR-like effects, gamma correction, sharpening
+    Apply subtle, professional post-processing effects to enhance image quality
+    Conservative enhancements that preserve natural appearance
     """
     if not IMAGE_PROCESSING_AVAILABLE:
         print("  Image processing libraries not available, skipping enhancement")
@@ -414,18 +414,12 @@ def enhance_image_quality(image_path, output_path=None):
         if output_path is None:
             output_path = image_path
         
-        print("  Applying advanced post-processing effects...")
-        print("    • Brightness enhancement for vivid appearance")
-        print("    • Enhanced contrast for dynamic range")
-        print("    • Increased color saturation for vibrancy")
-        print("    • Professional grain reduction and denoising")
-        print("    • Advanced noise reduction with edge preservation") 
-        print("    • HDR-like local contrast enhancement")
-        print("    • Gamma correction for optimal brightness")
-        print("    • Edge enhancement for crystal-clear details")
-        print("    • Color temperature optimization")
-        print("    • Vivid color enhancement for maximum impact")
-        print("    • Maximum quality output (98% JPEG, no subsampling)")
+        print("  Applying professional image enhancement...")
+        print("    • Adaptive brightness correction")
+        print("    • Gentle contrast adjustment")
+        print("    • Subtle color optimization")
+        print("    • Light noise reduction")
+        print("    • Careful sharpening")
         
         # Open the image
         with Image.open(image_path) as img:
@@ -433,50 +427,30 @@ def enhance_image_quality(image_path, output_path=None):
             if img.mode != 'RGB':
                 img = img.convert('RGB')
             
-            # Apply enhancements
+            # Apply gentle enhancements
             enhanced_img = img.copy()
             
-            # 1. Enhance brightness for vivid appearance
-            brightness_enhancer = ImageEnhance.Brightness(enhanced_img)
-            enhanced_img = brightness_enhancer.enhance(1.12)  # 12% brightness boost for vibrancy
+            # 1. Adaptive brightness adjustment
+            enhanced_img = apply_adaptive_brightness(enhanced_img)
             
-            # 2. Enhance contrast for more dynamic range
+            # 2. Gentle contrast enhancement
             contrast_enhancer = ImageEnhance.Contrast(enhanced_img)
-            enhanced_img = contrast_enhancer.enhance(1.25)  # 25% contrast boost for depth
+            enhanced_img = contrast_enhancer.enhance(1.05)  # Very gentle 5% contrast boost
             
-            # 3. Enhance color saturation for vivid colors
+            # 3. Subtle color saturation boost
             color_enhancer = ImageEnhance.Color(enhanced_img)
-            enhanced_img = color_enhancer.enhance(1.35)  # 35% saturation boost for vibrancy
+            enhanced_img = color_enhancer.enhance(1.08)  # Gentle 8% saturation boost
             
-            # 4. Apply sharpening for crisp quality
-            sharpness_enhancer = ImageEnhance.Sharpness(enhanced_img)
-            enhanced_img = sharpness_enhancer.enhance(1.2)  # 20% sharpening for clarity
+            # 4. Light noise reduction
+            enhanced_img = apply_gentle_noise_reduction(enhanced_img)
             
-            # 5. Apply advanced grain reduction (new step)
-            enhanced_img = apply_advanced_grain_reduction(enhanced_img)
+            # 5. Subtle sharpening for clarity
+            enhanced_img = apply_subtle_sharpening(enhanced_img)
             
-            # 6. Apply advanced noise reduction and grain removal
-            enhanced_img = reduce_noise_and_grain(enhanced_img)
+            # Save with high quality settings
+            enhanced_img.save(output_path, 'JPEG', quality=95, optimize=True, progressive=True)
             
-            # 5. Apply HDR-like local contrast enhancement
-            enhanced_img = apply_hdr_effect(enhanced_img)
-            
-            # 6. Apply gamma correction for optimal brightness balance
-            enhanced_img = apply_gamma_correction(enhanced_img, gamma=1.05)
-            
-            # 7. Apply edge enhancement for crisp details
-            enhanced_img = enhance_edges(enhanced_img)
-            
-            # 8. Apply final brightness and color optimization
-            enhanced_img = optimize_brightness_and_color(enhanced_img)
-            
-            # 9. Apply final vivid color enhancement
-            enhanced_img = apply_vivid_color_enhancement(enhanced_img)
-            
-            # Save the enhanced image with maximum quality and minimal compression
-            enhanced_img.save(output_path, 'JPEG', quality=98, optimize=False, progressive=True, subsampling=0)
-            
-        print("  ✓ Post-processing effects applied successfully")
+        print("  ✓ Natural enhancement applied successfully")
         return output_path
         
     except Exception as e:
@@ -484,293 +458,69 @@ def enhance_image_quality(image_path, output_path=None):
         print("  Using original image")
         return image_path
 
-def apply_hdr_effect(img):
-    """Apply HDR-like local contrast enhancement"""
+def apply_adaptive_brightness(img):
+    """Apply intelligent brightness adjustment based on image characteristics"""
     try:
-        # Convert PIL image to numpy array
+        # Analyze image brightness
         img_array = np.array(img)
-        
-        # Create a slightly blurred version for local contrast
-        blurred = img.filter(ImageFilter.GaussianBlur(radius=3))
-        blurred_array = np.array(blurred)
-        
-        # Calculate local contrast mask
-        contrast_mask = img_array.astype(np.float32) - blurred_array.astype(np.float32)
-        
-        # Apply subtle HDR effect for more dynamic range
-        hdr_strength = 0.5  # Increased for more vivid local contrast
-        enhanced_array = img_array.astype(np.float32) + (contrast_mask * hdr_strength)
-        
-        # Clip values to valid range
-        enhanced_array = np.clip(enhanced_array, 0, 255).astype(np.uint8)
-        
-        # Convert back to PIL Image
-        return Image.fromarray(enhanced_array)
-        
-    except Exception:
-        # If HDR processing fails, return original image
-        return img
-
-def apply_gamma_correction(img, gamma=1.05):
-    """Apply gamma correction for optimal brightness balance"""
-    try:
-        # Convert to numpy array
-        img_array = np.array(img)
-        
-        # Apply gamma correction
-        # Normalize to 0-1, apply gamma, scale back to 0-255
-        normalized = img_array.astype(np.float32) / 255.0
-        gamma_corrected = np.power(normalized, 1.0 / gamma)
-        corrected_array = (gamma_corrected * 255).astype(np.uint8)
-        
-        # Convert back to PIL Image
-        return Image.fromarray(corrected_array)
-        
-    except Exception:
-        # If gamma correction fails, return original image
-        return img
-
-def apply_advanced_grain_reduction(img):
-    """Apply advanced grain reduction specifically targeting film grain and noise"""
-    try:
-        # Convert to numpy array for advanced processing
-        img_array = np.array(img).astype(np.float32)
-        
-        # Apply multiple passes of grain reduction
-        enhanced_img = img.copy()
-        
-        # Pass 1: Median filter for salt-and-pepper noise
-        enhanced_img = enhanced_img.filter(ImageFilter.MedianFilter(size=3))
-        
-        # Pass 2: Advanced bilateral-like filtering
-        # Create multiple blur kernels for different frequency noise
-        blur_small = enhanced_img.filter(ImageFilter.GaussianBlur(radius=0.4))
-        blur_medium = enhanced_img.filter(ImageFilter.GaussianBlur(radius=0.8))
-        blur_large = enhanced_img.filter(ImageFilter.GaussianBlur(radius=1.5))
-        
-        # Convert to arrays
-        img_array = np.array(enhanced_img).astype(np.float32)
-        small_array = np.array(blur_small).astype(np.float32)
-        medium_array = np.array(blur_medium).astype(np.float32)
-        large_array = np.array(blur_large).astype(np.float32)
-        
-        # Create noise detection mask
-        # Calculate local variance to identify noisy regions
-        try:
-            from scipy import ndimage
-            
-            # Convert to grayscale for noise detection
-            gray = enhanced_img.convert('L')
-            gray_array = np.array(gray).astype(np.float32)
-            
-            # Calculate local variance (noise indicator)
-            variance = ndimage.generic_filter(gray_array, np.var, size=5)
-            noise_mask = (variance > np.percentile(variance, 60)).astype(np.float32)
-            noise_mask = np.stack([noise_mask, noise_mask, noise_mask], axis=2)
-            
-            # Apply adaptive denoising based on noise levels
-            # High noise areas get stronger denoising
-            result_array = (
-                img_array * (1 - noise_mask * 0.7) +
-                small_array * noise_mask * 0.2 +
-                medium_array * noise_mask * 0.3 +
-                large_array * noise_mask * 0.2
-            )
-            
-        except ImportError:
-            # If scipy is not available, use simpler approach
-            print("    Note: Install scipy for advanced grain reduction")
-            # Simple weighted average of different blur levels
-            result_array = (
-                img_array * 0.4 +
-                small_array * 0.3 +
-                medium_array * 0.2 +
-                large_array * 0.1
-            )
-        
-        # Clip and convert back
-        result_array = np.clip(result_array, 0, 255).astype(np.uint8)
-        return Image.fromarray(result_array)
-        
-    except Exception:
-        # If advanced grain reduction fails, return original
-        return img
-
-def reduce_noise_and_grain(img):
-    """Apply advanced noise reduction and grain removal"""
-    try:
-        # Convert to numpy array for advanced processing
-        img_array = np.array(img)
-        
-        # Apply bilateral filter-like noise reduction
-        # This preserves edges while reducing noise in smooth areas
-        from PIL import ImageFilter
-        
-        # Step 1: Apply stronger Gaussian blur to reduce high-frequency noise and grain
-        denoised = img.filter(ImageFilter.GaussianBlur(radius=0.8))  # Increased from 0.5
-        denoised_array = np.array(denoised)
-        
-        # Step 1.5: Apply additional bilateral-like filtering for better grain reduction
-        # Create multiple blur levels for advanced noise reduction
-        mild_blur = img.filter(ImageFilter.GaussianBlur(radius=0.3))
-        strong_blur = img.filter(ImageFilter.GaussianBlur(radius=1.2))
-        mild_array = np.array(mild_blur)
-        strong_array = np.array(strong_blur)
-        
-        # Step 2: Create edge mask to preserve important details
-        # Convert to grayscale for edge detection
-        gray = img.convert('L')
-        edges = gray.filter(ImageFilter.FIND_EDGES)
-        edge_array = np.array(edges)
-        
-        # Normalize edge mask to 0-1 range
-        edge_mask = edge_array.astype(np.float32) / 255.0
-        edge_mask = np.stack([edge_mask, edge_mask, edge_mask], axis=2)  # Make RGB
-        
-        # Step 3: Blend original and denoised based on edge strength with enhanced grain reduction
-        # Strong edges keep original detail, smooth areas get aggressive denoising
-        blend_factor = 0.5  # Increased from 0.3 for stronger grain reduction
-        edge_preserve_factor = 0.7  # How much to preserve edges
-        
-        # Create advanced blending for better grain removal
-        result_array = (
-            img_array.astype(np.float32) * edge_mask * edge_preserve_factor +
-            mild_array.astype(np.float32) * edge_mask * (1 - edge_preserve_factor) +
-            strong_array.astype(np.float32) * (1 - edge_mask) * (1 - blend_factor) +
-            img_array.astype(np.float32) * (1 - edge_mask) * blend_factor
-        ).astype(np.uint8)
-        
-        return Image.fromarray(result_array)
-        
-    except Exception:
-        # If noise reduction fails, return original image
-        return img
-
-def enhance_edges(img):
-    """Apply subtle edge enhancement for crisp details"""
-    try:
-        # Convert to numpy array
-        img_array = np.array(img)
-        
-        # Create edge-enhanced version using unsharp masking
-        # Apply gentle blur
-        blurred = img.filter(ImageFilter.GaussianBlur(radius=1.0))
-        blurred_array = np.array(blurred)
-        
-        # Calculate detail mask (difference between original and blurred)
-        detail_mask = img_array.astype(np.float32) - blurred_array.astype(np.float32)
-        
-        # Apply enhanced unsharp masking for crystal-clear details
-        unsharp_strength = 0.6  # Increased for sharper, more defined details
-        enhanced_array = img_array.astype(np.float32) + (detail_mask * unsharp_strength)
-        
-        # Clip values to valid range
-        enhanced_array = np.clip(enhanced_array, 0, 255).astype(np.uint8)
-        
-        return Image.fromarray(enhanced_array)
-        
-    except Exception:
-        # If edge enhancement fails, return original image
-        return img
-
-def optimize_brightness_and_color(img):
-    """Apply final brightness and color optimization"""
-    try:
-        # Convert to numpy array for histogram analysis
-        img_array = np.array(img)
-        
-        # Analyze histogram to optimize brightness
-        # Calculate mean brightness across all channels
         mean_brightness = np.mean(img_array)
         
-        # Apply brightness adjustment for vivid appearance
-        if mean_brightness < 120:  # Image needs brightness boost
+        # Apply conservative brightness adjustments only when needed
+        if mean_brightness < 100:  # Very dark image
             brightness_enhancer = ImageEnhance.Brightness(img)
-            img = brightness_enhancer.enhance(1.15)  # Stronger brightness boost for vibrancy
-        elif mean_brightness > 200:  # Image is too bright
+            img = brightness_enhancer.enhance(1.15)  # 15% boost
+        elif mean_brightness < 120:  # Somewhat dark
             brightness_enhancer = ImageEnhance.Brightness(img)
-            img = brightness_enhancer.enhance(0.92)  # Slight brightness reduction
-        
-        # Apply adaptive contrast enhancement based on image characteristics
-        img_array = np.array(img)
-        
-        # Calculate contrast (standard deviation of pixel values)
-        contrast_measure = np.std(img_array)
-        
-        if contrast_measure < 45:  # Low contrast image needs more punch
-            contrast_enhancer = ImageEnhance.Contrast(img)
-            img = contrast_enhancer.enhance(1.3)  # Strong contrast boost for vivid appearance
-        elif contrast_measure > 75:  # High contrast image
-            contrast_enhancer = ImageEnhance.Contrast(img)
-            img = contrast_enhancer.enhance(1.1)  # Gentle contrast enhancement
-        
-        # Apply subtle color temperature optimization
-        # Analyze color balance and apply gentle corrections
-        img_array = np.array(img)
-        r_mean = np.mean(img_array[:, :, 0])
-        g_mean = np.mean(img_array[:, :, 1])
-        b_mean = np.mean(img_array[:, :, 2])
-        
-        # If image is too warm or cool, apply gentle correction
-        if r_mean > b_mean + 15:  # Too warm
-            # Slightly reduce red, boost blue
-            img_array = img_array.astype(np.float32)
-            img_array[:, :, 0] *= 0.98  # Reduce red slightly
-            img_array[:, :, 2] *= 1.02  # Boost blue slightly
-            img_array = np.clip(img_array, 0, 255).astype(np.uint8)
-            img = Image.fromarray(img_array)
-        elif b_mean > r_mean + 15:  # Too cool
-            # Slightly reduce blue, boost red
-            img_array = img_array.astype(np.float32)
-            img_array[:, :, 0] *= 1.02  # Boost red slightly
-            img_array[:, :, 2] *= 0.98  # Reduce blue slightly
-            img_array = np.clip(img_array, 0, 255).astype(np.uint8)
-            img = Image.fromarray(img_array)
+            img = brightness_enhancer.enhance(1.08)  # 8% boost
+        elif mean_brightness > 220:  # Very bright
+            brightness_enhancer = ImageEnhance.Brightness(img)
+            img = brightness_enhancer.enhance(0.95)  # 5% reduction
         
         return img
-        
     except Exception:
-        # If optimization fails, return original image
         return img
 
-def apply_vivid_color_enhancement(img):
-    """Apply final vivid color enhancement for bright, vibrant wallpapers"""
+def apply_gentle_noise_reduction(img):
+    """Apply light noise reduction without losing detail"""
     try:
-        # Convert to numpy array for advanced color processing
-        img_array = np.array(img).astype(np.float32)
+        # Very gentle blur for noise reduction
+        denoised = img.filter(ImageFilter.GaussianBlur(radius=0.3))
         
-        # Apply selective color enhancement
-        # Boost vibrant colors while preserving skin tones and neutrals
+        # Convert to arrays
+        original_array = np.array(img).astype(np.float32)
+        denoised_array = np.array(denoised).astype(np.float32)
         
-        # Separate RGB channels
-        r, g, b = img_array[:, :, 0], img_array[:, :, 1], img_array[:, :, 2]
+        # Blend original with denoised (favor original)
+        blend_factor = 0.15  # Only 15% denoising
+        result_array = (original_array * (1 - blend_factor) + denoised_array * blend_factor)
+        result_array = np.clip(result_array, 0, 255).astype(np.uint8)
         
-        # Enhance blues (sky, water) - make them more vibrant
-        blue_mask = (b > r * 1.1) & (b > g * 1.1)
-        b[blue_mask] = np.clip(b[blue_mask] * 1.15, 0, 255)
-        
-        # Enhance greens (foliage, nature) - make them more lush
-        green_mask = (g > r * 1.1) & (g > b * 1.1)
-        g[green_mask] = np.clip(g[green_mask] * 1.12, 0, 255)
-        
-        # Enhance warm colors (sunsets, fire) - make them more golden
-        warm_mask = (r > g * 1.1) & (r > b * 1.2)
-        r[warm_mask] = np.clip(r[warm_mask] * 1.08, 0, 255)
-        g[warm_mask] = np.clip(g[warm_mask] * 1.05, 0, 255)
-        
-        # Combine enhanced channels
-        enhanced_array = np.stack([r, g, b], axis=2).astype(np.uint8)
-        enhanced_img = Image.fromarray(enhanced_array)
-        
-        # Apply final saturation boost for overall vibrancy
-        color_enhancer = ImageEnhance.Color(enhanced_img)
-        enhanced_img = color_enhancer.enhance(1.1)  # Additional 10% saturation
-        
-        return enhanced_img
-        
+        return Image.fromarray(result_array)
     except Exception:
-        # If vivid enhancement fails, return original image
         return img
+
+def apply_subtle_sharpening(img):
+    """Apply very gentle sharpening to enhance clarity without artifacts"""
+    try:
+        # Create a very gentle unsharp mask
+        blurred = img.filter(ImageFilter.GaussianBlur(radius=0.8))
+        
+        original_array = np.array(img).astype(np.float32)
+        blurred_array = np.array(blurred).astype(np.float32)
+        
+        # Calculate edge detail
+        detail_mask = original_array - blurred_array
+        
+        # Apply very subtle sharpening
+        sharpening_strength = 0.25  # Much gentler than before
+        sharpened_array = original_array + (detail_mask * sharpening_strength)
+        sharpened_array = np.clip(sharpened_array, 0, 255).astype(np.uint8)
+        
+        return Image.fromarray(sharpened_array)
+    except Exception:
+        return img
+
+
 
 def add_no_text_instruction(prompt):
     """Add 'no text' instruction to any prompt to ensure clean wallpapers"""
