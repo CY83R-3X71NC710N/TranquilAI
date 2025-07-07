@@ -61,10 +61,10 @@ def download_image_from_pollinations(prompt, width, height, seed, model, output_
         # Construct the Pollinations API URL with maximum quality settings
         if private:
             # Private mode - minimal parameters for privacy but still high quality
-            image_url = f"https://pollinations.ai/p/{encoded_prompt}?width={width}&height={height}&seed={seed}&model={model}&quality=high"
+            image_url = f"https://pollinations.ai/p/{encoded_prompt}?width={width}&height={height}&seed={seed}&model={model}&nologo=true&private=true"
         else:
             # Standard mode - with nologo, enhance, and maximum quality parameters
-            image_url = f"https://pollinations.ai/p/{encoded_prompt}?width={width}&height={height}&seed={seed}&model={model}&nologo=true&enhance=true&quality=high&steps=50"
+            image_url = f"https://pollinations.ai/p/{encoded_prompt}?width={width}&height={height}&seed={seed}&model={model}&nologo=true&enhance=true&private=true&quality=high&steps=120"
         
         print(f"Downloading image from Pollinations API...")
         print(f"  URL: {image_url}")
@@ -603,22 +603,6 @@ def main():
     if args.save_dir:
         save_dir = Path(args.save_dir)
         save_dir.mkdir(exist_ok=True)
-    
-    # Set existing wallpapers from queue (if not generate-only mode)
-    if not args.generate_only:
-        print("\n=== Setting Queued Wallpapers ===")
-        for display_idx in range(1, displays + 1):
-            # Look for the most recent wallpaper file for this display
-            pattern = f"wallpaper_display_{display_idx}_*.jpg"
-            matching_files = list(queue_dir.glob(pattern))
-            if matching_files:
-                # Sort by modification time and get the most recent
-                most_recent = max(matching_files, key=lambda f: f.stat().st_mtime)
-                set_wallpaper(str(most_recent), display_idx, args.tool)
-            else:
-                print(f"No queued wallpaper for display {display_idx}")
-        
-        refresh_desktop()
     
     # Generate new wallpapers
     print(f"\n=== Generating New Wallpapers ===")
