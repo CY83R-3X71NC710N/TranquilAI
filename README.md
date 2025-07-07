@@ -1,6 +1,6 @@
 # macOS AI Wallpaper Generator
 
-A powerful Python script that generates AI wallpapers using Google Gemini 2.5 Pro for prompt enhancement and Pollinations for 100% free wallpaper image generation, further applying advanced AI post-processing effects to produce the final masterpiece.
+A powerful Python script that generates AI wallpapers using Google Gemini 2.5 Pro for prompt enhancement and Pollinations (Flux) for 100% free wallpaper image generation, further applying advanced AI post-processing effects to produce the final masterpiece.
 
 - Inspired by the macos-gen-ai-wallpaper repo and created by CY83R-3X71NC710N
 
