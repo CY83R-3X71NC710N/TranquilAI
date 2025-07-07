@@ -58,13 +58,13 @@ def download_image_from_pollinations(prompt, width, height, seed, model, output_
         # URL encode the prompt to handle special characters
         encoded_prompt = urllib.parse.quote(prompt)
         
-        # Construct the Pollinations API URL
+        # Construct the Pollinations API URL with maximum quality settings
         if private:
-            # Private mode - minimal parameters for privacy
-            image_url = f"https://pollinations.ai/p/{encoded_prompt}?width={width}&height={height}&seed={seed}&model={model}"
+            # Private mode - minimal parameters for privacy but still high quality
+            image_url = f"https://pollinations.ai/p/{encoded_prompt}?width={width}&height={height}&seed={seed}&model={model}&quality=high"
         else:
-            # Standard mode - with nologo and enhance parameters
-            image_url = f"https://pollinations.ai/p/{encoded_prompt}?width={width}&height={height}&seed={seed}&model={model}&nologo=true&enhance=true"
+            # Standard mode - with nologo, enhance, and maximum quality parameters
+            image_url = f"https://pollinations.ai/p/{encoded_prompt}?width={width}&height={height}&seed={seed}&model={model}&nologo=true&enhance=true&quality=high&steps=50"
         
         print(f"Downloading image from Pollinations API...")
         print(f"  URL: {image_url}")
@@ -380,9 +380,15 @@ def setup_dependencies():
         from PIL import Image, ImageEnhance, ImageFilter
         import numpy as np
         print("✓ Image processing dependencies are available")
+        # Check for scipy for advanced grain reduction
+        try:
+            import scipy
+            print("✓ Advanced grain reduction (scipy) is available")
+        except ImportError:
+            print("⚠ scipy not found - advanced grain reduction will use fallback method")
     except ImportError:
         print("Installing image processing dependencies...")
-        result = run_command([sys.executable, "-m", "pip", "install", "Pillow", "numpy", "--user"])
+        result = run_command([sys.executable, "-m", "pip", "install", "Pillow", "numpy", "scipy", "--user"])
         if not result or result.returncode != 0:
             print("⚠ Failed to install image processing dependencies. Post-processing will be disabled.")
         else:
@@ -412,12 +418,14 @@ def enhance_image_quality(image_path, output_path=None):
         print("    • Brightness enhancement for vivid appearance")
         print("    • Enhanced contrast for dynamic range")
         print("    • Increased color saturation for vibrancy")
-        print("    • Advanced noise reduction and grain removal") 
+        print("    • Professional grain reduction and denoising")
+        print("    • Advanced noise reduction with edge preservation") 
         print("    • HDR-like local contrast enhancement")
         print("    • Gamma correction for optimal brightness")
         print("    • Edge enhancement for crystal-clear details")
         print("    • Color temperature optimization")
         print("    • Vivid color enhancement for maximum impact")
+        print("    • Maximum quality output (98% JPEG, no subsampling)")
         
         # Open the image
         with Image.open(image_path) as img:
@@ -444,7 +452,10 @@ def enhance_image_quality(image_path, output_path=None):
             sharpness_enhancer = ImageEnhance.Sharpness(enhanced_img)
             enhanced_img = sharpness_enhancer.enhance(1.2)  # 20% sharpening for clarity
             
-            # 4. Apply advanced noise reduction and grain removal
+            # 5. Apply advanced grain reduction (new step)
+            enhanced_img = apply_advanced_grain_reduction(enhanced_img)
+            
+            # 6. Apply advanced noise reduction and grain removal
             enhanced_img = reduce_noise_and_grain(enhanced_img)
             
             # 5. Apply HDR-like local contrast enhancement
@@ -462,8 +473,8 @@ def enhance_image_quality(image_path, output_path=None):
             # 9. Apply final vivid color enhancement
             enhanced_img = apply_vivid_color_enhancement(enhanced_img)
             
-            # Save the enhanced image with high quality
-            enhanced_img.save(output_path, 'JPEG', quality=95, optimize=True)
+            # Save the enhanced image with maximum quality and minimal compression
+            enhanced_img.save(output_path, 'JPEG', quality=98, optimize=False, progressive=True, subsampling=0)
             
         print("  ✓ Post-processing effects applied successfully")
         return output_path
@@ -519,6 +530,72 @@ def apply_gamma_correction(img, gamma=1.05):
         # If gamma correction fails, return original image
         return img
 
+def apply_advanced_grain_reduction(img):
+    """Apply advanced grain reduction specifically targeting film grain and noise"""
+    try:
+        # Convert to numpy array for advanced processing
+        img_array = np.array(img).astype(np.float32)
+        
+        # Apply multiple passes of grain reduction
+        enhanced_img = img.copy()
+        
+        # Pass 1: Median filter for salt-and-pepper noise
+        enhanced_img = enhanced_img.filter(ImageFilter.MedianFilter(size=3))
+        
+        # Pass 2: Advanced bilateral-like filtering
+        # Create multiple blur kernels for different frequency noise
+        blur_small = enhanced_img.filter(ImageFilter.GaussianBlur(radius=0.4))
+        blur_medium = enhanced_img.filter(ImageFilter.GaussianBlur(radius=0.8))
+        blur_large = enhanced_img.filter(ImageFilter.GaussianBlur(radius=1.5))
+        
+        # Convert to arrays
+        img_array = np.array(enhanced_img).astype(np.float32)
+        small_array = np.array(blur_small).astype(np.float32)
+        medium_array = np.array(blur_medium).astype(np.float32)
+        large_array = np.array(blur_large).astype(np.float32)
+        
+        # Create noise detection mask
+        # Calculate local variance to identify noisy regions
+        try:
+            from scipy import ndimage
+            
+            # Convert to grayscale for noise detection
+            gray = enhanced_img.convert('L')
+            gray_array = np.array(gray).astype(np.float32)
+            
+            # Calculate local variance (noise indicator)
+            variance = ndimage.generic_filter(gray_array, np.var, size=5)
+            noise_mask = (variance > np.percentile(variance, 60)).astype(np.float32)
+            noise_mask = np.stack([noise_mask, noise_mask, noise_mask], axis=2)
+            
+            # Apply adaptive denoising based on noise levels
+            # High noise areas get stronger denoising
+            result_array = (
+                img_array * (1 - noise_mask * 0.7) +
+                small_array * noise_mask * 0.2 +
+                medium_array * noise_mask * 0.3 +
+                large_array * noise_mask * 0.2
+            )
+            
+        except ImportError:
+            # If scipy is not available, use simpler approach
+            print("    Note: Install scipy for advanced grain reduction")
+            # Simple weighted average of different blur levels
+            result_array = (
+                img_array * 0.4 +
+                small_array * 0.3 +
+                medium_array * 0.2 +
+                large_array * 0.1
+            )
+        
+        # Clip and convert back
+        result_array = np.clip(result_array, 0, 255).astype(np.uint8)
+        return Image.fromarray(result_array)
+        
+    except Exception:
+        # If advanced grain reduction fails, return original
+        return img
+
 def reduce_noise_and_grain(img):
     """Apply advanced noise reduction and grain removal"""
     try:
@@ -529,9 +606,16 @@ def reduce_noise_and_grain(img):
         # This preserves edges while reducing noise in smooth areas
         from PIL import ImageFilter
         
-        # Step 1: Apply gentle Gaussian blur to reduce high-frequency noise
-        denoised = img.filter(ImageFilter.GaussianBlur(radius=0.5))
+        # Step 1: Apply stronger Gaussian blur to reduce high-frequency noise and grain
+        denoised = img.filter(ImageFilter.GaussianBlur(radius=0.8))  # Increased from 0.5
         denoised_array = np.array(denoised)
+        
+        # Step 1.5: Apply additional bilateral-like filtering for better grain reduction
+        # Create multiple blur levels for advanced noise reduction
+        mild_blur = img.filter(ImageFilter.GaussianBlur(radius=0.3))
+        strong_blur = img.filter(ImageFilter.GaussianBlur(radius=1.2))
+        mild_array = np.array(mild_blur)
+        strong_array = np.array(strong_blur)
         
         # Step 2: Create edge mask to preserve important details
         # Convert to grayscale for edge detection
@@ -543,12 +627,16 @@ def reduce_noise_and_grain(img):
         edge_mask = edge_array.astype(np.float32) / 255.0
         edge_mask = np.stack([edge_mask, edge_mask, edge_mask], axis=2)  # Make RGB
         
-        # Step 3: Blend original and denoised based on edge strength
-        # Strong edges keep original detail, smooth areas get denoised
-        blend_factor = 0.3  # How much denoising to apply
+        # Step 3: Blend original and denoised based on edge strength with enhanced grain reduction
+        # Strong edges keep original detail, smooth areas get aggressive denoising
+        blend_factor = 0.5  # Increased from 0.3 for stronger grain reduction
+        edge_preserve_factor = 0.7  # How much to preserve edges
+        
+        # Create advanced blending for better grain removal
         result_array = (
-            img_array.astype(np.float32) * edge_mask +
-            denoised_array.astype(np.float32) * (1 - edge_mask) * (1 - blend_factor) +
+            img_array.astype(np.float32) * edge_mask * edge_preserve_factor +
+            mild_array.astype(np.float32) * edge_mask * (1 - edge_preserve_factor) +
+            strong_array.astype(np.float32) * (1 - edge_mask) * (1 - blend_factor) +
             img_array.astype(np.float32) * (1 - edge_mask) * blend_factor
         ).astype(np.uint8)
         

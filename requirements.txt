@@ -6,6 +6,7 @@ python-dotenv>=1.0.0
 # Image processing dependencies
 Pillow>=10.0.0
 numpy>=1.21.0
+scipy>=1.7.0
 
 # Google Auth dependencies (required by google-genai)
 google-auth>=2.14.1
