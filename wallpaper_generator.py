@@ -24,7 +24,7 @@ except ImportError:
 
 # Try to import Google Gemini dependencies for prompt enhancement
 try:
-    import google.generativeai as genai
+    from google import genai
     from dotenv import load_dotenv
     GEMINI_AVAILABLE = True
     # Load environment variables
@@ -99,8 +99,7 @@ def enhance_prompt_with_gemini(user_prompt):
         print("  Enhancing prompt with Gemini 2.5 Pro...")
         
         # Configure Gemini
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-2.0-flash-exp')
+        client = genai.Client(api_key=api_key)
         
         # Create enhancement prompt
         enhancement_prompt = f"""You are an expert AI art prompt engineer. Your task is to enhance the following user prompt to create stunning, high-quality wallpapers.
@@ -118,14 +117,9 @@ Original prompt: "{user_prompt}"
 Enhanced prompt:"""
 
         # Generate enhanced prompt
-        response = model.generate_content(
-            enhancement_prompt,
-            generation_config=genai.types.GenerationConfig(
-                temperature=0.7,
-                top_p=0.9,
-                top_k=40,
-                max_output_tokens=200,
-            )
+        response = client.models.generate_content(
+            model='gemini-2.0-flash-exp',
+            contents=enhancement_prompt
         )
         
         enhanced_prompt = response.text.strip()
