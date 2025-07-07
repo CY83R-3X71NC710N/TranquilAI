@@ -106,6 +106,11 @@ def enhance_prompt_with_gemini(user_prompt):
         
         print("  Enhancing prompt with Gemini 2.5 Pro...")
         
+        # Check for alternative API key
+        gemini_api_key = os.getenv('GEMINI_API_KEY')
+        if gemini_api_key and api_key:
+            print("Both GOOGLE_API_KEY and GEMINI_API_KEY are set. Using GOOGLE_API_KEY.")
+        
         # Configure Gemini
         client = genai.Client(api_key=api_key)
         
@@ -121,6 +126,8 @@ Transform this prompt into a detailed, vivid description that will generate beau
 
 Keep the core concept but make it much more descriptive and visually rich. Keep response under 200 words.
 
+Provide ONLY ONE enhanced prompt, not multiple options.
+
 Original prompt: "{user_prompt}"
 
 Enhanced prompt:"""
@@ -132,6 +139,10 @@ Enhanced prompt:"""
         )
         
         enhanced_prompt = response.text.strip()
+        
+        # Handle case where Gemini provides multiple options despite instructions
+        enhanced_prompt = parse_gemini_response(enhanced_prompt)
+        
         # Ensure no text instruction is included
         enhanced_prompt = add_no_text_instruction(enhanced_prompt)
         print(f"  ✓ Enhanced: {enhanced_prompt[:100]}...")
@@ -532,6 +543,81 @@ def add_no_text_instruction(prompt):
         prompt += ", no text, no letters, no words, no captions"
     
     return prompt
+
+def parse_gemini_response(response_text):
+    """
+    Parse Gemini response to extract the best option when multiple are provided.
+    Sometimes Gemini provides multiple options despite instructions to provide only one.
+    """
+    try:
+        # Check if response contains multiple options
+        if "**Option" in response_text or "Option 1" in response_text:
+            print("  Multiple options detected, selecting the first one...")
+            
+            # Look for patterns like "**Option 1 (Title):**" or "Option 1:"
+            import re
+            
+            # First try to find the content between quotes for Option 1
+            option_pattern = r'\*\*Option\s+1[^:]*:\*\*\s*\n?\s*"([^"]+)"'
+            match = re.search(option_pattern, response_text, re.DOTALL)
+            
+            if match:
+                selected_option = match.group(1).strip()
+                print(f"  ✓ Selected: Option 1")
+                return selected_option
+            
+            # Alternative pattern without quotes but with clear option boundary
+            option_pattern = r'\*\*Option\s+1[^:]*:\*\*\s*\n?\s*([^*]+?)(?=\*\*Option\s+2|\n\*\*|$)'
+            match = re.search(option_pattern, response_text, re.DOTALL)
+            
+            if match:
+                selected_option = match.group(1).strip()
+                # Clean up any trailing text or formatting
+                lines = selected_option.split('\n')
+                # Take the first non-empty line or combine multiple lines if it's a paragraph
+                if lines:
+                    if len(lines) == 1:
+                        selected_option = lines[0].strip()
+                    else:
+                        # For multi-line descriptions, clean and join
+                        cleaned_lines = [line.strip() for line in lines if line.strip() and not line.strip().startswith('**')]
+                        selected_option = ' '.join(cleaned_lines)
+                print(f"  ✓ Selected: Option 1")
+                return selected_option
+            
+            # Fallback: split by lines and take first substantial content after "Option 1"
+            lines = response_text.split('\n')
+            capture_next = False
+            collected_lines = []
+            
+            for line in lines:
+                if "Option 1" in line:
+                    capture_next = True
+                    continue
+                elif capture_next:
+                    if line.strip():
+                        if line.startswith("**Option 2") or line.startswith("Option 2"):
+                            break  # Stop at Option 2
+                        if not line.startswith("**") and not line.startswith("Option"):
+                            # Remove quotes if present and clean the line
+                            clean_line = line.strip().strip('"')
+                            if clean_line:
+                                collected_lines.append(clean_line)
+                    elif collected_lines:  # Empty line after collecting content
+                        break
+            
+            if collected_lines:
+                selected_option = ' '.join(collected_lines)
+                print(f"  ✓ Selected: Option 1 (fallback method)")
+                return selected_option
+        
+        # If no multiple options detected, return the original response
+        return response_text.strip()
+        
+    except Exception as e:
+        print(f"  ⚠ Error parsing Gemini response: {str(e)}")
+        print("  Using original response")
+        return response_text.strip()
 
 def main():
     parser = argparse.ArgumentParser(description="Generate AI wallpapers using Gemini-enhanced prompts and Pollinations")
