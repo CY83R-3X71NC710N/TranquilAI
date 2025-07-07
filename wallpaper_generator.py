@@ -22,6 +22,11 @@ except ImportError:
     subprocess.check_call([sys.executable, "-m", "pip", "install", "requests", "--user"])
     import requests
 
+# Check if Google Imagen-3 directory exists
+IMAGEN_DIR = os.path.join(os.path.dirname(__file__), 'google-imagen-3')
+IMAGEN_SCRIPT = os.path.join(IMAGEN_DIR, 'imagen_with_refinement.py')
+IMAGEN_AVAILABLE = os.path.exists(IMAGEN_SCRIPT)
+
 def run_command(cmd, capture_output=True, shell=False):
     """Run a command and return the result."""
     try:
@@ -34,14 +39,19 @@ def run_command(cmd, capture_output=True, shell=False):
         print(f"Error running command: {e}")
         return None
 
-def download_image_from_pollinations(prompt, width, height, seed, model, output_file):
+def download_image_from_pollinations(prompt, width, height, seed, model, output_file, private=False):
     """Download image from Pollinations API"""
     try:
         # URL encode the prompt to handle special characters
         encoded_prompt = urllib.parse.quote(prompt)
         
-        # Construct the Pollinations API URL with nologo parameter to remove watermark
-        image_url = f"https://pollinations.ai/p/{encoded_prompt}?width={width}&height={height}&seed={seed}&model={model}&nologo=true&enhance=true"
+        # Construct the Pollinations API URL
+        if private:
+            # Private mode - minimal parameters for privacy
+            image_url = f"https://pollinations.ai/p/{encoded_prompt}?width={width}&height={height}&seed={seed}&model={model}"
+        else:
+            # Standard mode - with nologo and enhance parameters
+            image_url = f"https://pollinations.ai/p/{encoded_prompt}?width={width}&height={height}&seed={seed}&model={model}&nologo=true&enhance=true"
         
         print(f"Downloading image from Pollinations API...")
         print(f"  URL: {image_url}")
@@ -69,19 +79,125 @@ def download_image_from_pollinations(prompt, width, height, seed, model, output_
         print(f"✗ Error downloading image: {str(e)}")
         return False
 
-def generate_wallpaper_with_pollinations(prompt, width, height, seed, output_file):
+def generate_wallpaper_with_pollinations(prompt, width, height, seed, output_file, private=False):
     """Generate wallpaper using the Pollinations API"""
     try:
         print(f"Generating image with Pollinations API...")
         print(f"  Model: GPTImage")
         print(f"  Resolution: {width}x{height}")
         print(f"  Seed: {seed}")
+        print(f"  Private mode: {'Yes' if private else 'No'}")
         print(f"  Prompt: {prompt}")
         
-        return download_image_from_pollinations(prompt, width, height, seed, "GPTImage", output_file)
+        return download_image_from_pollinations(prompt, width, height, seed, "GPTImage", output_file, private)
         
     except Exception as e:
         print(f"✗ Error generating image with Pollinations API: {str(e)}")
+        return False
+
+def generate_wallpaper_with_imagen3(prompt, width, height, output_file):
+    """Generate wallpaper using Google Imagen-3 by calling the script directly"""
+    try:
+        if not IMAGEN_AVAILABLE:
+            print("✗ Google Imagen-3 script not found. Please ensure google-imagen-3/imagen_with_refinement.py exists.")
+            return False
+        
+        print(f"Generating image with Google Imagen-3...")
+        print(f"  Model: Imagen-3.0")
+        print(f"  Target Resolution: {width}x{height}")
+        print(f"  Prompt: {prompt}")
+        
+        # Determine best aspect ratio based on target resolution
+        aspect_ratio = get_best_aspect_ratio(width, height)
+        print(f"  Using aspect ratio: {aspect_ratio}")
+        
+        # Create a temporary input for the script
+        temp_dir = tempfile.mkdtemp()
+        try:
+            # Change to the imagen directory to run the script
+            original_cwd = os.getcwd()
+            os.chdir(IMAGEN_DIR)
+            
+            # Create input for the script (simulating user input)
+            input_data = f"{prompt}\n{aspect_ratio}\n1\n"
+            
+            # Run the imagen script
+            print("  Running Imagen-3 generation script...")
+            result = subprocess.run(
+                [sys.executable, "imagen_with_refinement.py"],
+                input=input_data,
+                capture_output=True,
+                text=True,
+                timeout=300  # 5 minute timeout
+            )
+            
+            if result.returncode != 0:
+                print(f"✗ Imagen script failed with return code {result.returncode}")
+                print(f"Error: {result.stderr}")
+                return False
+            
+            # Find the generated image file
+            # The script generates files with pattern: prompt_timestamp_random.png
+            image_files = []
+            for file in os.listdir('.'):
+                if file.endswith('.png') and 'generated_image' in file:
+                    # Check if this file was just created (within last 2 minutes)
+                    file_time = os.path.getmtime(file)
+                    current_time = time.time()
+                    if current_time - file_time < 120:  # 2 minutes
+                        image_files.append(file)
+            
+            if not image_files:
+                print("✗ No generated image file found")
+                return False
+            
+            # Use the most recent file
+            latest_file = max(image_files, key=os.path.getmtime)
+            
+            # Move the generated image to our desired location
+            src_path = os.path.join(IMAGEN_DIR, latest_file)
+            shutil.move(src_path, output_file)
+            print(f"✓ Image generated and moved to: {output_file}")
+            return True
+            
+        finally:
+            # Always change back to original directory
+            os.chdir(original_cwd)
+            # Clean up temp directory
+            shutil.rmtree(temp_dir, ignore_errors=True)
+            
+    except subprocess.TimeoutExpired:
+        print("✗ Imagen-3 generation timed out (5 minutes)")
+        return False
+    except Exception as e:
+        print(f"✗ Error generating image with Google Imagen-3: {str(e)}")
+        return False
+
+def get_best_aspect_ratio(width, height):
+    """Determine the best Imagen-3 aspect ratio for given dimensions"""
+    ratio = width / height
+    
+    # Available Imagen-3 aspect ratios: "1:1", "3:4", "4:3", "9:16", "16:9"
+    ratios = {
+        "1:1": 1.0,
+        "4:3": 4/3,
+        "3:4": 3/4, 
+        "16:9": 16/9,
+        "9:16": 9/16
+    }
+    
+    # Find closest aspect ratio
+    closest_ratio = min(ratios.items(), key=lambda x: abs(x[1] - ratio))
+    return closest_ratio[0]
+
+def generate_wallpaper(prompt, width, height, seed, output_file, private=False, engine="pollinations"):
+    """Generate wallpaper using specified engine"""
+    if engine == "pollinations":
+        return generate_wallpaper_with_pollinations(prompt, width, height, seed, output_file, private)
+    elif engine == "imagen3":
+        return generate_wallpaper_with_imagen3(prompt, width, height, output_file)
+    else:
+        print(f"✗ Unknown generation engine: {engine}")
         return False
 
 def install_wallpaper_tool():
@@ -282,10 +398,14 @@ def main():
     parser.add_argument("--resolution", help="Image resolution (e.g., 1920x1080, 2560x1440)")
     parser.add_argument("--tool", choices=["wallpaper-cli", "m-cli", "applescript", "auto"], 
                        default="auto", help="Wallpaper setting tool to use")
+    parser.add_argument("--engine", choices=["pollinations", "imagen3"], 
+                       default="pollinations", help="Image generation engine to use")
     parser.add_argument("--queue-dir", default="./queued-images", help="Directory for queued wallpaper images")
     parser.add_argument("--setup", action="store_true", help="Install required dependencies")
     parser.add_argument("--generate-only", action="store_true", 
                        help="Only generate images, don't set as wallpaper")
+    parser.add_argument("--private", action="store_true", 
+                       help="Enable private generation mode (minimal parameters for privacy)")
     
     args = parser.parse_args()
     
@@ -294,14 +414,22 @@ def main():
         success = setup_dependencies()
         sys.exit(0 if success else 1)
     
-    # Check if requests is available
-    try:
-        import requests
-    except ImportError:
-        print("Error: requests library not found.")
-        print("Please install it with: pip install requests --user")
-        print("Or run: python3 wallpaper_generator.py --setup")
+    # Validate engine availability
+    if args.engine == "imagen3" and not IMAGEN_AVAILABLE:
+        print("Error: Google Imagen-3 dependencies not available.")
+        print("Please install the required dependencies in the google-imagen-3 directory.")
+        print("Alternatively, use --engine pollinations")
         sys.exit(1)
+    
+    # Check if requests is available (needed for pollinations)
+    if args.engine == "pollinations":
+        try:
+            import requests
+        except ImportError:
+            print("Error: requests library not found.")
+            print("Please install it with: pip install requests --user")
+            print("Or run: python3 wallpaper_generator.py --setup")
+            sys.exit(1)
     
     # Determine resolution
     if args.resolution:
@@ -319,6 +447,8 @@ def main():
     
     print(f"Generating wallpapers for {displays} display(s)")
     print(f"Resolution: {width}x{height}")
+    print(f"Engine: {args.engine}")
+    print(f"Engine: {args.engine}")
     
     # Create directories
     queue_dir = Path(args.queue_dir)
@@ -368,7 +498,7 @@ def main():
             output_file = saved_dir / f"wallpaper_display_{display_idx}_{timestamp}.jpg"
         
         # Generate wallpaper
-        if generate_wallpaper_with_pollinations(args.prompt, width, height, seed, str(output_file)):
+        if generate_wallpaper(args.prompt, width, height, seed, str(output_file), args.private, args.engine):
             success_count += 1
             
             # Create unique queue filename to avoid caching issues
