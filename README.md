@@ -5,6 +5,7 @@ A powerful Python script that generates tranquil AI wallpapers using Google Gemi
 - Changes the wallpaper daily with peaceful, stunning imagery
 - I recommend upscaling the result with Upscayl (16x, Double Upscale) as Pollinations is limited to a certain resolution.
 - Do I recommend this tool? I do not recommend this tool if you are a wallpaper purist, AI generally creates low-quality, bad artistic style content, additionally unless you pay extremely high-costs, getting higher-resolution AI is difficult and it often has to be paired with an upscaler to look right, I'd recommend this tool to help you generate and view wallpapers before upscaling them and adding them to a proper wallpaper pack you are building, this should only be used as a preview tool if you want super-high-quality images. AI is generally low-quality and I recommend Wallhaven and Alphacoders Wallpaper Abyss instead.
+- The issue with AI is that it often looks high-quality at a low size but when it is set at a wallpaper you start to notice the inherent flaws.
 
 - Inspired by the macos-gen-ai-wallpaper repo and created by CY83R-3X71NC710N
 
