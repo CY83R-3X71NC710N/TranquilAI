@@ -11,7 +11,7 @@ A powerful Python script that generates tranquil AI wallpapers using Google Gemi
 - The only AI I have seen that can create good AI wallpapers is Google Whisk after replicating features of another image and then upscaling with another tool.
 - The issue with AI is that it often looks high-quality at a low size but when it is set at a wallpaper you start to notice the inherent flaws.
 - I avoid video wallpapers because they tend to get boring quickly, and the limited availability makes it hard to find many worth downloading; additionally, they require third-party tools that consume system resources and may not be compatible with all operating systems. I also appreciate the aesthetics and thoughtfulness of photos, which are easier to edit and manipulate than videos—editing videos is more work than I’m willing to put in for a wallpaper. Furthermore, videos can be distracting and take focus away from productive tasks on the computer.
-- However, the best Video Wallpapers I have ever seen are located at https://www.3planesoft.com, they offer free versions which makes me respect their company. These wallpapers are 3D, high-quality, and extremely detailed.
+- However, the best Video Wallpapers I have ever seen are located at https://www.3planesoft.com, they offer free versions which makes me respect their company. These wallpapers are 3D, high-quality, and extremely detailed, Wallpaper Engine is probably the best engine, yet is isn't available on mac.
 
 - Inspired by the macos-gen-ai-wallpaper repo and created by CY83R-3X71NC710N
 
